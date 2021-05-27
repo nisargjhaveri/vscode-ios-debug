@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:ios-device.helloWorld"
+		"onCommand:ios-device.pickTarget"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "ios-device.helloWorld",
-				"title": "Hello World"
+				"command": "ios-device.pickTarget",
+				"title": "Select iOS Target"
 			}
 		]
 	},
@@ -41,5 +41,8 @@
 		"mocha": "^8.2.1",
 		"typescript": "^4.1.3",
 		"vscode-test": "^1.5.0"
+	},
+	"dependencies": {
+		"ios-deploy": "^1.11.4"
 	}
 }
