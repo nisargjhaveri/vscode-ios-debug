@@ -53,3 +53,30 @@ export async function listSimulators(): Promise<Simulator[]>
             return [];
         });
 }
+
+export async function isValid(simulator: Simulator): Promise<boolean>
+{
+    return _execFile('xcrun', ['simctl', 'list', 'devices', '--json'])
+        .then(({stdout, stderr}): boolean => {
+            if (stderr) { console.error(stderr); }
+
+            let simctlList = JSON.parse(stdout) || {};
+            let devices: Simulator[] = [];
+
+            // Add all available devices
+            for (const runtimeIdentifier of Object.keys(simctlList.devices)) {
+                devices.push(
+                    ...
+                    simctlList.devices[runtimeIdentifier]
+                        .filter((d: any) => d.isAvailable)
+                );
+            }
+
+            devices = devices.filter((d: Simulator) => d.udid === simulator.udid);
+
+            return !!devices.length;
+        }).catch(e => {
+            console.log(e);
+            return false;
+        });
+}

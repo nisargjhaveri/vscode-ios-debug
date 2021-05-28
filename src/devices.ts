@@ -2,6 +2,7 @@ import { Device } from './commonTypes';
 import * as path from 'path';
 import * as fs from 'fs';
 import { _execFile } from './utils';
+import { spawn } from 'child_process';
 
 let IOS_DEPLOY = "ios-deploy";
 
@@ -48,4 +49,48 @@ export async function listDevices(): Promise<Device[]>
             console.log(e);
             return [];
         });
+}
+
+export async function isValid(target: Device): Promise<boolean>
+{
+    return new Promise((resolve, reject) => {
+        let found = false;
+
+        let p = spawn(IOS_DEPLOY, ['--detect', '--timeout', '1']);
+
+        p.on('error', (e) => {
+            if (!found)
+            {
+                reject(e);
+            }
+        });
+
+        p.on('close', (code, signal) => {
+            if (!found)
+            {
+                resolve(false);
+            }
+        });
+
+        p.stderr.on('data', (data) => console.log(data));
+        p.stdout.on('data', (data: Buffer) => {
+            if (found) { return; }
+
+            let match = data.toString().match(/^\[....\] Found (.*?) \(/);
+
+            if (match && match.length > 1)
+            {
+                let udid = match[1];
+                console.log(`Found device with udid: ${udid}`);
+
+                if (udid === target.udid)
+                {
+                    found = true;
+                    p.kill();
+
+                    resolve(true);
+                }
+            }
+        });
+    });
 }

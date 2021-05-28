@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:ios-device.pickTarget"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
