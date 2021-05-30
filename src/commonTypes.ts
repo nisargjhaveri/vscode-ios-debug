@@ -1,7 +1,9 @@
+export type TargetType = "Device" | "Simulator";
+
 export interface Target {
     udid: string,
     name: string,
-    type: "Device" | "Simulator",
+    type: TargetType,
     version: string,
     buildVersion: string,
     runtime: string,
