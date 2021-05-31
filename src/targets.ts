@@ -12,9 +12,9 @@ let lastIsValidCheck: {
 
 export async function listTargets(): Promise<Target[]>
 {
-    return Promise.all([devices.listDevices(), simulators.listSimulators()]).then(([dev, sim]): Target[] => {
-        return (dev as Target[]).concat(sim);
-    });
+    let [dev, sim] = await Promise.all([devices.listDevices(), simulators.listSimulators()]);
+    
+    return (dev as Target[]).concat(sim);
 }
 
 export async function isValid(target: Target): Promise<boolean>
