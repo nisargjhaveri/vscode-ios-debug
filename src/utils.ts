@@ -1,15 +1,4 @@
 import { execFile } from 'child_process';
+import { promisify } from 'util';
 
-export function _execFile(command: string, args: string[]): Promise<{stdout: string, stderr: string}>
-{
-    return new Promise((resolve, reject) => {
-        let p = execFile(command, args, (error, stdout, stderr) => {
-            if (error)
-            {
-                reject(error);
-            }
-
-            resolve({stdout, stderr});
-        });
-    });
-}
+export let _execFile = promisify(execFile);

@@ -80,3 +80,58 @@ export async function isValid(simulator: Simulator): Promise<boolean>
             return false;
         });
 }
+
+export async function boot(udid: string): Promise<void>
+{
+    console.log(`Booting simulator (udid: ${udid}) if required`);
+    let time = new Date().getTime();
+
+    try
+    {
+        await _execFile('xcrun', ['simctl', 'boot', udid]);
+    }
+    catch (e)
+    {
+        let {stderr} = e;
+
+        if (!stderr.match("Unable to boot device in current state: Booted"))
+        {
+            throw e;
+        }
+    }
+
+    console.log(`Booted in ${new Date().getTime() - time} ms`);
+}
+
+export async function install(udid: string, path: string): Promise<void>
+{
+    console.log(`Installing app (path: ${path}) to simulator (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    await _execFile('xcrun', ['simctl', 'install', udid, path]);
+
+    console.log(`Installed in ${new Date().getTime() - time} ms`);
+}
+
+export async function launch(udid: string, bundleId: string, waitForDebugger: boolean = false): Promise<Number>
+{
+    console.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let {stdout} = await _execFile('xcrun', ['simctl', 'launch', ...(waitForDebugger ? ['--wait-for-debugger'] : []), '--terminate-running-process', udid, bundleId]);
+
+    let match = stdout.match(new RegExp(`^${bundleId}: (-?\\d+)`));
+
+    if (match && match[1])
+    {
+        let pid = Number.parseInt(match[1]);
+        if (pid > 0)
+        {
+            console.log(`Launched in ${new Date().getTime() - time} ms`);
+            return pid;
+        }
+    }
+
+    console.log(`Launch failed in ${new Date().getTime() - time} ms`);
+    throw new Error("Could not launch and get pid");
+}
