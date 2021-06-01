@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('ios-device.simulator.install', targetCommands.simulatorInatall));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-device.simulator.launch', targetCommands.simulatorLaunch));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-device.simulator.install+launch', targetCommands.simulatorInstallLaunch));
+	context.subscriptions.push(vscode.commands.registerCommand('ios-device.device.install', targetCommands.deviceInstall));
 
 	targetPicker.activate(context);
 }

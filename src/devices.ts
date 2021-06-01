@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { _execFile } from './utils';
 import { spawn } from 'child_process';
+import * as StreamValues from 'stream-json/streamers/StreamValues';
 
 let IOS_DEPLOY = "ios-deploy";
 
@@ -93,4 +94,38 @@ export async function isValid(target: Device): Promise<boolean>
             }
         });
     });
+}
+
+export async function install(udid: string, path: string, progressCallback?: (event: any) => void): Promise<string>
+{
+    console.log(`Installing app (path: ${path}) to device (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let installationPath: string|undefined = undefined;
+
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+
+    p.child.stdout?.pipe(StreamValues.withParser())
+        .on('data', (data) => {
+            let event = data.value;
+
+            if (event.Event === "BundleInstall" && event.Status === "Complete")
+            {
+                installationPath = event.Path;
+            }
+
+            progressCallback && progressCallback(event);
+        });
+
+    await p;
+
+    console.log(`Installed in ${new Date().getTime() - time} ms`);
+    console.log(`Path: ${installationPath}`);
+
+    if (!installationPath) 
+    {
+        throw Error('Could not install and get path');
+    }
+
+    return installationPath;
 }
