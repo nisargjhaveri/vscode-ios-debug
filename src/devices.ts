@@ -2,7 +2,7 @@ import { Device } from './commonTypes';
 import * as path from 'path';
 import * as fs from 'fs';
 import { _execFile } from './utils';
-import { spawn } from 'child_process';
+import { PromiseWithChild, spawn } from 'child_process';
 import * as StreamValues from 'stream-json/streamers/StreamValues';
 
 let IOS_DEPLOY = "ios-deploy";
@@ -128,4 +128,41 @@ export async function install(udid: string, path: string, progressCallback?: (ev
     }
 
     return installationPath;
+}
+
+export async function debugserver(udid: string, progressCallback?: (event: any) => void): Promise<{port: Number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
+{
+    console.log(`Starting debugserver for device (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--json']);
+
+    let port: Number = await new Promise((resolve, reject) => {
+        p.catch(reject);
+
+        p.child.stdout?.pipe(StreamValues.withParser())
+            .on('data', (data) => {
+                let event = data.value;
+
+                if (event.Event === "DebugServerLaunched")
+                {
+                    resolve(event.Port);
+                }
+
+                progressCallback && progressCallback(event);
+            });
+    });
+
+    console.log(`Debugserver started in ${new Date().getTime() - time} ms`);
+
+    if (!port)
+    {
+        throw Error('Could not start debugserver and get port');
+    }
+    console.log(`Port: ${port}`);
+
+    return {
+        port: port,
+        exec: p,
+    };
 }
