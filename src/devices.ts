@@ -103,7 +103,7 @@ export async function install(udid: string, path: string, progressCallback?: (ev
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
 
     p.child.stdout?.pipe(StreamValues.withParser())
         .on('data', (data) => {
@@ -135,7 +135,7 @@ export async function debugserver(udid: string, progressCallback?: (event: any) 
     console.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--timeout', '3', '--nolldb', '--json']);
 
     let port: Number = await new Promise((resolve, reject) => {
         p.catch(reject);

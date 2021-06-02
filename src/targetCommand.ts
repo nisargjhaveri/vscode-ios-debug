@@ -20,7 +20,10 @@ export async function simulatorInatall(args: {udid: string, path: string})
 
 	return Promise.resolve()
 		.then(() => simulator.boot(udid))
-		.then(() => simulator.install(udid, path));
+		.then(() => simulator.install(udid, path))
+		.catch((e) => {
+			vscode.window.showErrorMessage("Failed to install app on simulator");
+		});;;
 }
 
 export async function simulatorLaunch(args: {udid: string, bundleId: string})
@@ -30,7 +33,10 @@ export async function simulatorLaunch(args: {udid: string, bundleId: string})
 	return Promise.resolve()
 		.then(() => simulator.boot(udid))
 		.then(() => simulator.launch(udid, bundleId, true))
-		.then((pid) => pid.toString());
+		.then((pid) => pid.toString())
+		.catch((e) => {
+			vscode.window.showErrorMessage("Failed to launch app on simulator");
+		});;;
 }
 
 export async function simulatorInstallLaunch(args: {udid: string, path: string, bundleId: string})
@@ -41,7 +47,10 @@ export async function simulatorInstallLaunch(args: {udid: string, path: string, 
 		.then(() => simulator.boot(udid))
 		.then(() => simulator.install(udid, path))
 		.then(() => simulator.launch(udid, bundleId, true))
-		.then((pid) => pid.toString());
+		.then((pid) => pid.toString())
+		.catch((e) => {
+			vscode.window.showErrorMessage("Failed to install and launch app on simulator");
+		});;;
 }
 
 export async function deviceInstall(args: {udid: string, path: string})
@@ -74,7 +83,10 @@ export async function deviceInstall(args: {udid: string, path: string})
 
 					lastProgress = event.OverallPercent;
 				}))
-				.then((devicePath: string) => devicePath);
+				.then((devicePath: string) => devicePath)
+				.catch((e) => {
+					vscode.window.showErrorMessage("Failed to install app on device");
+				});;
 		});
 }
 
@@ -98,6 +110,9 @@ export async function deviceDebugserver(args: {udid: string})
 				vscode.tasks.executeTask(task);
 
 				return port.toString();
+			})
+			.catch((e) => {
+				vscode.window.showErrorMessage("Failed to start debugserver");
 			});
 	});
 }
