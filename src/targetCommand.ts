@@ -60,13 +60,17 @@ export async function deviceInstall(args: {udid: string, path: string})
 	return vscode.window.withProgress({
 			"location": vscode.ProgressLocation.Notification,
 			"title": "Installing",
-			"cancellable": false
+			"cancellable": true
 		}, (progress, token) => {
 			let lastProgress = 0;
 			progress.report({ increment: 0 });
 
+			let cancellationToken = {cancel: () => {}};
+
+			token.onCancellationRequested((e) => { cancellationToken.cancel(); });
+
 			return Promise.resolve()
-				.then(() => device.install(udid, path, (event) => {
+				.then(() => device.install(udid, path, cancellationToken, (event) => {
 					console.log(event);
 
 					let message;
@@ -97,10 +101,14 @@ export async function deviceDebugserver(args: {udid: string})
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
 		"title": "Starting debugserver",
-		"cancellable": false
+		"cancellable": true
 	}, (progress, token) => {
+		let cancellationToken = {cancel: () => {}};
+
+		token.onCancellationRequested((e) => cancellationToken.cancel());
+
 		return Promise.resolve()
-			.then(() => device.debugserver(udid))
+			.then(() => device.debugserver(udid, cancellationToken))
 			.then(({port, exec}) => {
 
 				let task = new vscode.Task({type: "ios-device"}, vscode.TaskScope.Workspace, "debugserver", "ios-device", new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
@@ -127,6 +135,13 @@ class DebugserverTaskTerminal implements vscode.Pseudoterminal {
 
 	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
 		this.writeEmitter.fire(`Debugserver started on port: ${this.port}\r\n`);
+
+		if (this.exec.child.killed || this.exec.child.exitCode !== null) 
+		{
+			this.writeEmitter.fire(`Debugserver closed with exit code: ${this.exec.child.exitCode}\r\n`);
+			this.closeEmitter.fire(0);
+			return;
+		}
 
 		this.exec.child.on('close', (code, signal) => {
 			this.writeEmitter.fire(`Debugserver closed on signal: ${signal} with exit code: ${code}\r\n`);

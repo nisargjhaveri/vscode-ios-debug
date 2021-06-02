@@ -96,7 +96,7 @@ export async function isValid(target: Device): Promise<boolean>
     });
 }
 
-export async function install(udid: string, path: string, progressCallback?: (event: any) => void): Promise<string>
+export async function install(udid: string, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
 {
     console.log(`Installing app (path: ${path}) to device (udid: ${udid})`);
     let time = new Date().getTime();
@@ -104,6 +104,8 @@ export async function install(udid: string, path: string, progressCallback?: (ev
     let installationPath: string|undefined = undefined;
 
     let p = _execFile(IOS_DEPLOY, ['--id', udid, '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+
+    cancellationToken.cancel = () => p.child.kill();
 
     p.child.stdout?.pipe(StreamValues.withParser())
         .on('data', (data) => {
@@ -130,12 +132,14 @@ export async function install(udid: string, path: string, progressCallback?: (ev
     return installationPath;
 }
 
-export async function debugserver(udid: string, progressCallback?: (event: any) => void): Promise<{port: Number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
+export async function debugserver(udid: string, cancellationToken: {cancel(): void}, progressCallback?: (event: any) => void): Promise<{port: Number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
 {
     console.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--timeout', '3', '--nolldb', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--json']);
+
+    cancellationToken.cancel = () => p.child.kill();
 
     let port: Number = await new Promise((resolve, reject) => {
         p.catch(reject);
