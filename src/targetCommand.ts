@@ -18,39 +18,64 @@ export async function simulatorInatall(args: {udid: string, path: string})
 {
 	let {udid, path} = await resolveArgs(args);
 
-	return Promise.resolve()
-		.then(() => simulator.boot(udid))
-		.then(() => simulator.install(udid, path))
-		.catch((e) => {
-			vscode.window.showErrorMessage("Failed to install app on simulator");
-		});;;
+	return vscode.window.withProgress({
+		"location": vscode.ProgressLocation.Notification,
+		"title": "Simulator",
+		"cancellable": false
+	}, (progress, token) => {
+		return Promise.resolve()
+			.then(() => progress.report({message: "Booting"}))
+			.then(() => simulator.boot(udid))
+			.then(() => progress.report({message: "Installing app"}))
+			.then(() => simulator.install(udid, path))
+			.catch((e) => {
+				vscode.window.showErrorMessage("Failed to install app on simulator");
+			});;;
+	});
 }
 
 export async function simulatorLaunch(args: {udid: string, bundleId: string})
 {
 	let {udid, bundleId} = await resolveArgs(args);
 
-	return Promise.resolve()
-		.then(() => simulator.boot(udid))
-		.then(() => simulator.launch(udid, bundleId, true))
-		.then((pid) => pid.toString())
-		.catch((e) => {
-			vscode.window.showErrorMessage("Failed to launch app on simulator");
-		});;;
+	return vscode.window.withProgress({
+		"location": vscode.ProgressLocation.Notification,
+		"title": "Simulator",
+		"cancellable": false
+	}, (progress, token) => {
+		return Promise.resolve()
+			.then(() => progress.report({message: "Booting"}))
+			.then(() => simulator.boot(udid))
+			.then(() => progress.report({message: "Lauching app"}))
+			.then(() => simulator.launch(udid, bundleId, true))
+			.then((pid) => pid.toString())
+			.catch((e) => {
+				vscode.window.showErrorMessage("Failed to launch app on simulator");
+			});;;
+	});
 }
 
 export async function simulatorInstallLaunch(args: {udid: string, path: string, bundleId: string})
 {
 	let {udid, path, bundleId} = await resolveArgs(args);
 
-	return Promise.resolve()
-		.then(() => simulator.boot(udid))
-		.then(() => simulator.install(udid, path))
-		.then(() => simulator.launch(udid, bundleId, true))
-		.then((pid) => pid.toString())
-		.catch((e) => {
-			vscode.window.showErrorMessage("Failed to install and launch app on simulator");
-		});;;
+	return vscode.window.withProgress({
+		"location": vscode.ProgressLocation.Notification,
+		"title": "Simulator",
+		"cancellable": false
+	}, (progress, token) => {
+		return Promise.resolve()
+			.then(() => progress.report({message: "Booting"}))
+			.then(() => simulator.boot(udid))
+			.then(() => progress.report({message: "Installing app"}))
+			.then(() => simulator.install(udid, path))
+			.then(() => progress.report({message: "Lauching app"}))
+			.then(() => simulator.launch(udid, bundleId, true))
+			.then((pid) => pid.toString())
+			.catch((e) => {
+				vscode.window.showErrorMessage("Failed to install and launch app on simulator");
+			});;;
+	});
 }
 
 export async function deviceInstall(args: {udid: string, path: string})
