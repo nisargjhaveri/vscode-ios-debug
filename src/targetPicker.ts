@@ -17,7 +17,7 @@ let statusBarTargetPicker: vscode.StatusBarItem;
 function setupStatusBarPicker()
 {
 	statusBarTargetPicker = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-	statusBarTargetPicker.command = "ios-device.pickTarget";
+	statusBarTargetPicker.command = "ios-debug.pickTarget";
 	statusBarTargetPicker.tooltip = "Select iOS target for debugging";
 	updateStatusBarTargetPicker();
 	statusBarTargetPicker.show();
@@ -82,7 +82,7 @@ export async function _getOrPickTarget()
 	if (!isValid)
 	{
 		await _updateTarget(undefined);
-		target = await vscode.commands.executeCommand('ios-device.pickTarget');
+		target = await vscode.commands.executeCommand('ios-debug.pickTarget');
 	}
 
 	console.log(target);
@@ -92,21 +92,21 @@ export async function _getOrPickTarget()
 
 export async function targetUDID()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-device._getOrPickTarget');
+	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
 
 	return target?.udid;
 }
 
 export async function targetType ()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-device._getOrPickTarget');
+	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
 
 	return target?.type;
 }
 
 export async function targetName()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-device._getOrPickTarget');
+	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
 
 	return target?.name;
 }

@@ -1,1 +1,1 @@
-# ios-device
+# ios-debug

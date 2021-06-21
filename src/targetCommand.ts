@@ -8,7 +8,7 @@ async function resolveArgs(args: any)
 {
 	if (!args.udid)
 	{
-		args.udid = await vscode.commands.executeCommand('ios-device.targetUDID');
+		args.udid = await vscode.commands.executeCommand('ios-debug.targetUDID');
 	}
 
 	return args;
@@ -136,7 +136,7 @@ export async function deviceDebugserver(args: {udid: string})
 			.then(() => device.debugserver(udid, cancellationToken))
 			.then(({port, exec}) => {
 
-				let task = new vscode.Task({type: "ios-device"}, vscode.TaskScope.Workspace, "debugserver", "ios-device", new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
+				let task = new vscode.Task({type: "ios-debug"}, vscode.TaskScope.Workspace, "debugserver", "ios-debug", new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
 					return new DebugserverTaskTerminal(exec, port);
 				}));
 

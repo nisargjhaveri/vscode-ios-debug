@@ -1,7 +1,7 @@
 {
-	"name": "ios-device",
+	"name": "ios-debug",
 	"publisher": "nisargjhaveri",
-	"displayName": "ios-device",
+	"displayName": "ios-debug",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
@@ -17,7 +17,7 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "ios-device.pickTarget",
+				"command": "ios-debug.pickTarget",
 				"title": "Select iOS Target"
 			}
 		]
