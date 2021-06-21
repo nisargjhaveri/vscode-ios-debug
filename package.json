@@ -45,7 +45,7 @@
 		"vscode-test": "^1.5.0"
 	},
 	"dependencies": {
-		"ios-deploy": "ios-control/ios-deploy",
+		"ios-deploy": "github:ios-control/ios-deploy",
 		"stream-json": "^1.7.1"
 	}
 }
