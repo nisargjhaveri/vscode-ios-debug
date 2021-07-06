@@ -113,12 +113,27 @@ export async function install(udid: string, path: string): Promise<void>
     console.log(`Installed in ${new Date().getTime() - time} ms`);
 }
 
-export async function launch(udid: string, bundleId: string, waitForDebugger: boolean = false): Promise<Number>
+export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, waitForDebugger: boolean = false): Promise<Number>
 {
     console.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
-    let {stdout} = await _execFile('xcrun', ['simctl', 'launch', ...(waitForDebugger ? ['--wait-for-debugger'] : []), '--terminate-running-process', udid, bundleId]);
+    args = args ?? [];
+    env = env ?? {};
+
+    let simctlEnv: {[key: string]: string} = {};
+
+    Object.keys(env).forEach((key) => {
+        simctlEnv[`SIMCTL_CHILD_${key}`] = env[key];
+    });
+
+    let {stdout} = await _execFile(
+        'xcrun',
+        ['simctl', 'launch', ...(waitForDebugger ? ['--wait-for-debugger'] : []), '--terminate-running-process', udid, bundleId, ...args],
+        {
+            env: simctlEnv
+        }
+    );
 
     let match = stdout.match(new RegExp(`^${bundleId}: (-?\\d+)`));
 
