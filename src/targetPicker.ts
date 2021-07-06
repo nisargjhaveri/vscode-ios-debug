@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Device, Simulator, Target } from './commonTypes';
-import { listTargets, isValid as isValidTarget } from './targets';
+import { listTargets, isValid as isValidTarget, getTarget } from './targets';
 
 const SELECTED_TARGET_KEY = "selected_target";
 
@@ -83,6 +83,20 @@ export async function _getOrPickTarget()
 	{
 		await _updateTarget(undefined);
 		target = await vscode.commands.executeCommand('ios-debug.pickTarget');
+	}
+
+	console.log(target);
+
+	return target;
+}
+
+export async function getTargetFromUDID(udid: string)
+{
+	let target: Target|undefined = await getTarget(udid);
+
+	if (target && target.udid)
+	{
+		await _updateTarget(target);
 	}
 
 	console.log(target);

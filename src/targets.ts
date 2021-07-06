@@ -17,6 +17,13 @@ export async function listTargets(): Promise<Target[]>
     return (dev as Target[]).concat(sim);
 }
 
+export async function getTarget(udid: string): Promise<Target|undefined>
+{
+    let target: Target[] = (await listTargets()).filter((t: Target) => t.udid === udid);
+
+    return target.length === 1 ? target[0] : undefined;
+}
+
 export async function isValid(target: Target): Promise<boolean>
 {
     if (lastIsValidCheck

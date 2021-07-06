@@ -20,6 +20,25 @@
 				"command": "ios-debug.pickTarget",
 				"title": "Select iOS Target"
 			}
+		],
+		"debuggers": [
+			{
+				"type": "lldb",
+				"configurationAttributes": {
+					"launch": {
+						"properties": {
+							"iosTarget": {
+								"description": "Target ios. Specify target UDID or `true` to select target.",
+								"type": ["boolean", "string"]
+							},
+							"iosBundleId": {
+								"description": "Bundle ID of the app to debug",
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
 		]
 	},
 	"scripts": {

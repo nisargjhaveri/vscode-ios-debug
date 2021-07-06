@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { DebugConfigurationProvider } from './debugConfigProvider';
 import * as targetCommands from './targetCommand';
 import * as targetPicker from './targetPicker';
 
@@ -28,6 +29,8 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.device.install', targetCommands.deviceInstall));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.device.debugserver', targetCommands.deviceDebugserver));
+
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lldb', new DebugConfigurationProvider()));
 
 	targetPicker.activate(context);
 }
