@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Target, TargetType } from './commonTypes';
-import { getTargetFromUDID, pickTarget } from './targetPicker';
+import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
 
 const lldbPlatform: {[T in TargetType]: string} = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -11,12 +11,26 @@ const lldbPlatform: {[T in TargetType]: string} = {
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider
 {
+    private async getTarget(iosTarget: string): Promise<Target|undefined> {
+        if (iosTarget === "select") {
+            return await pickTarget();
+        }
+        else if (iosTarget === "last-selected") {
+            return await _getOrPickTarget();
+        }
+        else if (typeof iosTarget === "string") {
+            return await getTargetFromUDID(iosTarget);
+        }
+        
+        return undefined;
+    }
+
     async resolveDebugConfiguration(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
         console.log(dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
 
-        let target: Target|undefined = typeof dbgConfig.iosTarget === "string" ? await getTargetFromUDID(dbgConfig.iosTarget) : await pickTarget();
+        let target: Target|undefined = await this.getTarget(dbgConfig.iosTarget);
         if (!target) { return null; }
 
         dbgConfig.iosTarget = target;
@@ -33,6 +47,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         console.log(dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
+
+        if (dbgConfig.sessionName) {
+            dbgConfig.name = dbgConfig.sessionName;
+        }
 
         let target: Target = dbgConfig.iosTarget;
 

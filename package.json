@@ -29,10 +29,21 @@
 						"properties": {
 							"iosTarget": {
 								"description": "Target ios. Specify target UDID or `true` to select target.",
-								"type": ["boolean", "string"]
+								"anyOf": [
+									{
+										"type": "string"
+									},
+									{
+										"enum": [false, "select", "last-selected"]
+									}
+								]
 							},
 							"iosBundleId": {
 								"description": "Bundle ID of the app to debug",
+								"type": "string"
+							},
+							"sessionName": {
+								"description": "Update the debug session name to easily identify multiple running sessions",
 								"type": "string"
 							}
 						}
@@ -49,6 +60,9 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
+	"extensionDependencies": [
+		"vadimcn.vscode-lldb"
+	],
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.4",

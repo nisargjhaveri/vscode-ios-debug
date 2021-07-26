@@ -139,6 +139,10 @@ export async function deviceDebugserver(args: {udid: string})
 				let task = new vscode.Task({type: "ios-debug"}, vscode.TaskScope.Workspace, "debugserver", "ios-debug", new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
 					return new DebugserverTaskTerminal(exec, port);
 				}));
+				task.presentationOptions = {
+					focus: false,
+					reveal: vscode.TaskRevealKind.Never
+				};
 
 				vscode.tasks.executeTask(task);
 
