@@ -11,7 +11,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onStartupFinished",
+		"onDebugResolve:lldb"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

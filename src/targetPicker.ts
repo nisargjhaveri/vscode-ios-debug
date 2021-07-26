@@ -45,8 +45,23 @@ function _getTarget(): Target|undefined
 // Command callbacks
 export async function pickTarget()
 {
-	let quickPickItems = listTargets().then((targets) => {
-		return targets.map((t) : TargetQuickPickItem => ({
+	let targets = await listTargets();
+	let quickPickItems = targets
+		.sort((a, b) => {
+			if (a.type !== b.type) {
+				return a.type.localeCompare(b.type);
+			}
+			if (a.type === "Simulator") {
+				const simA = a as Simulator;
+				const simB = b as Simulator;
+				if (simA.state !== simB.state) {
+					return simA.state === "Booted" ? -1 : simB.state === "Booted" ? 1 : 0; 
+				}
+			}
+
+			return 0;
+		})
+		.map((t): TargetQuickPickItem => ({
 			label: t.name,
 			description:
 				(t.type === "Simulator") ? 
@@ -55,7 +70,6 @@ export async function pickTarget()
 			detail: `${t.type} ‧ ${t.runtime}`,
 			target: t,
 		}));
-	});
 
 	let quickPickOptions: vscode.QuickPickOptions = {
 		title: "Select iOS Target",
