@@ -103,7 +103,7 @@ export async function install(udid: string, path: string, cancellationToken: {ca
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
 
     cancellationToken.cancel = () => p.child.kill();
 
@@ -137,7 +137,7 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
     console.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--faster-path-search', '--json']);
 
     cancellationToken.cancel = () => p.child.kill();
 
