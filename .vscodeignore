@@ -10,3 +10,8 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+
+# Don't bundle extra build files from ios-deploy
+node_modules/ios-deploy/_Frameworks/**
+node_modules/ios-deploy/build/**
+!node_modules/ios-deploy/build/Release/ios-deploy
