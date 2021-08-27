@@ -1,9 +1,10 @@
 {
 	"name": "ios-debug",
 	"publisher": "nisargjhaveri",
-	"displayName": "ios-debug",
-	"description": "",
+	"displayName": "iOS Debug",
+	"description": "iOS debugging support in VS Code",
 	"version": "0.0.1",
+	"repository": "https://github.com/nisargjhaveri/vscode-ios-debug",
 	"engines": {
 		"vscode": "^1.56.0"
 	},
