@@ -7,6 +7,7 @@ export interface Target {
     version: string,
     buildVersion: string,
     runtime: string,
+    sdk: string,
 };
 
 export interface Simulator extends Target {

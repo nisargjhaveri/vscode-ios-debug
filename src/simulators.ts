@@ -31,6 +31,7 @@ export async function listSimulators(): Promise<Simulator[]>
                             version: runtimes[runtimeIdentifier].version,
                             buildVersion: runtimes[runtimeIdentifier].buildversion,
                             runtime: runtimes[runtimeIdentifier].name,
+                            sdk: "iphonesimulator",
                             dataPath,
                             logPath,
                             state,
@@ -149,4 +150,21 @@ export async function launch(udid: string, bundleId: string, args: string[], env
 
     console.log(`Launch failed in ${new Date().getTime() - time} ms`);
     throw new Error("Could not launch and get pid");
+}
+
+export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
+{
+    console.log(`Getting pid (appBundleId: ${appBundleId}) for simulator (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    // simctl spawn booted launchctl list
+    let {stdout, stderr} = await _execFile('xcrun', ['simctl', 'spawn', udid, 'launchctl', 'list']);
+
+    let match = stdout.match(new RegExp(`^(\\d+).+?UIKitApplication:${appBundleId}.*$`, 'm'));
+    if (!match) {
+        throw new Error(`Could not find pid for ${appBundleId}`);
+    }
+    
+    console.log(`Got pid in ${new Date().getTime() - time} ms`);
+    return parseInt(match[1]);
 }

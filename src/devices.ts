@@ -40,6 +40,7 @@ export async function listDevices(): Promise<Device[]>
                     version: d.ProductVersion,
                     buildVersion: d.BuildVersion,
                     runtime: `iOS ${d.ProductVersion}`,
+                    sdk: "iphoneos",
                     modelName: d.modelName,
                 }));
 

@@ -139,6 +139,14 @@ export async function targetName()
 	return target?.name;
 }
 
+export async function targetSdk()
+{
+	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
+
+	return target?.sdk;
+}
+
+
 // Activation
 export function activate(c: vscode.ExtensionContext)
 {
