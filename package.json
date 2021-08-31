@@ -8,8 +8,11 @@
 	"engines": {
 		"vscode": "^1.56.0"
 	},
+	"os": [
+		"darwin"
+	],
 	"categories": [
-		"Other"
+		"Debuggers"
 	],
 	"activationEvents": [
 		"onStartupFinished",
