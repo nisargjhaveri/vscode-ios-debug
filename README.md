@@ -17,7 +17,7 @@ Debug iOS apps directly from VS Code.
 
 
 # Quick Start
-Here is a minimal example to get you started
+Here is a minimal launch configuration to get you started
 ```
 {
     "name": "Launch App",
