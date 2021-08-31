@@ -3,6 +3,9 @@
 All notable changes to the "ios-debug" extension will be documented in this file.
 
 ## [Unreleased]
+
+
+## v0.1.0
 ### Added
 - New command: `targetSdk`, which returns `iphoneos` or `iphonesimulator` depending on the selected target.
 - A new sample project with vscode configuration example.
