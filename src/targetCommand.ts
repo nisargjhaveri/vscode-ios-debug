@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as logger from './logger';
 import * as simulator from './simulators';
 import * as device from './devices';
 import { targetUDID } from './targetPicker';
@@ -112,7 +113,7 @@ export async function deviceInstall(args: {udid: string, path: string})
 
 			return Promise.resolve()
 				.then(() => device.install(udid, path, cancellationToken, (event) => {
-					console.log(event);
+					logger.log(event);
 
 					let message;
 					if (event.Event === "BundleCopy")

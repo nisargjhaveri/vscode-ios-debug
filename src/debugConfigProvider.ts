@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as logger from './logger';
 import { Target, TargetType } from './commonTypes';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
@@ -27,7 +28,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     async resolveDebugConfiguration(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
-        console.log(dbgConfig);
+        logger.log(dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
 
@@ -47,7 +48,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     async resolveDebugConfigurationWithSubstitutedVariables(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
-        console.log(dbgConfig);
+        logger.log(dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
 

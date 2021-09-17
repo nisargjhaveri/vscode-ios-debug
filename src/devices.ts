@@ -1,6 +1,7 @@
 import { Device } from './commonTypes';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as logger from './logger';
 import { _execFile } from './utils';
 import { PromiseWithChild, spawn } from 'child_process';
 import * as StreamValues from 'stream-json/streamers/StreamValues';
@@ -20,11 +21,11 @@ let IOS_DEPLOY = "ios-deploy";
 
 export async function listDevices(): Promise<Device[]>
 {
-    console.log(`Using ${IOS_DEPLOY}`);
+    logger.log(`Listing devices using ${IOS_DEPLOY}`);
 
     return _execFile(IOS_DEPLOY, ['--detect', '--timeout', '1', '--json'])
         .then(({stdout, stderr}): Device[] => {
-            if (stderr) { console.error(stderr); }
+            if (stderr) { logger.error(stderr); }
 
             stdout = `[${stdout.replace(/\n\}\{\n/g, '\n},{\n')}]`;
 
@@ -44,17 +45,21 @@ export async function listDevices(): Promise<Device[]>
                     modelName: d.modelName,
                 }));
 
-            console.log(`Found ${devices.length} devices`);
+                logger.log(`Found ${devices.length} devices`);
 
             return devices;
-        }).catch(e => {
-            console.log(e);
+        }).catch((e: any) => {
+            logger.log(`Could not find any connected device: ${e.toString().trimEnd()}`);
+            e.stderr && logger.error(e.stderr);
+
             return [];
         });
 }
 
 export async function isValid(target: Device): Promise<boolean>
 {
+    logger.log(`Checking if device (udid: ${target.udid}) is still valid`);
+
     return new Promise((resolve, reject) => {
         let found = false;
 
@@ -74,7 +79,7 @@ export async function isValid(target: Device): Promise<boolean>
             }
         });
 
-        p.stderr.on('data', (data) => console.log(data));
+        p.stderr.on('data', (data) => logger.log(data));
         p.stdout.on('data', (data: Buffer) => {
             if (found) { return; }
 
@@ -83,7 +88,7 @@ export async function isValid(target: Device): Promise<boolean>
             if (match && match.length > 1)
             {
                 let udid = match[1];
-                console.log(`Found device with udid: ${udid}`);
+                logger.log(`Found device with udid: ${udid}`);
 
                 if (udid === target.udid)
                 {
@@ -99,7 +104,7 @@ export async function isValid(target: Device): Promise<boolean>
 
 export async function install(udid: string, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
 {
-    console.log(`Installing app (path: ${path}) to device (udid: ${udid})`);
+    logger.log(`Installing app (path: ${path}) to device (udid: ${udid})`);
     let time = new Date().getTime();
 
     let installationPath: string|undefined = undefined;
@@ -122,8 +127,8 @@ export async function install(udid: string, path: string, cancellationToken: {ca
 
     await p;
 
-    console.log(`Installed in ${new Date().getTime() - time} ms`);
-    console.log(`Path: ${installationPath}`);
+    logger.log(`Installed in ${new Date().getTime() - time} ms`);
+    logger.log(`Path: ${installationPath}`);
 
     if (!installationPath) 
     {
@@ -135,7 +140,7 @@ export async function install(udid: string, path: string, cancellationToken: {ca
 
 export async function debugserver(udid: string, cancellationToken: {cancel(): void}, progressCallback?: (event: any) => void): Promise<{port: Number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
 {
-    console.log(`Starting debugserver for device (udid: ${udid})`);
+    logger.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
 
     let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--faster-path-search', '--json']);
@@ -158,13 +163,13 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
             });
     });
 
-    console.log(`Debugserver started in ${new Date().getTime() - time} ms`);
+    logger.log(`Debugserver started in ${new Date().getTime() - time} ms`);
 
     if (!port)
     {
         throw Error('Could not start debugserver and get port');
     }
-    console.log(`Port: ${port}`);
+    logger.log(`Port: ${port}`);
 
     return {
         port: port,
@@ -173,7 +178,7 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
 }
 
 export async function getAppDevicePath(udid: string, appBundleId: string) {
-    console.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
+    logger.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
     let time = new Date().getTime();
 
     let p = _execFile(IOS_DEPLOY, ['--id', udid, '--list_bundle_id', '--json', '-k', 'Path']);
@@ -204,7 +209,7 @@ export async function getAppDevicePath(udid: string, appBundleId: string) {
 
     await p;
 
-    console.log(`App device path (${appDevicePath}) retrieved in ${new Date().getTime() - time} ms`);
+    logger.log(`App device path (${appDevicePath}) retrieved in ${new Date().getTime() - time} ms`);
 
     return appDevicePath;
 }

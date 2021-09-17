@@ -1,11 +1,12 @@
 import { Simulator } from './commonTypes';
 import { _execFile } from './utils';
+import * as logger from './logger';
 
 export async function listSimulators(): Promise<Simulator[]>
 {
     return _execFile('xcrun', ['simctl', 'list', '--json'])
         .then(({stdout, stderr}): Simulator[] => {
-            if (stderr) { console.error(stderr); }
+            if (stderr) { logger.error(stderr); }
 
             let simctlList = JSON.parse(stdout) || {};
             let runtimes: {[key: string]: any} = {};
@@ -46,11 +47,11 @@ export async function listSimulators(): Promise<Simulator[]>
                                 || a.name.localeCompare(b.name, undefined, {numeric: true})
                         ));
 
-            console.log(`Found ${devices.length} simulators`);
+            logger.log(`Found ${devices.length} simulators`);
 
             return devices;
         }).catch(e => {
-            console.log(e);
+            logger.log(e);
             return [];
         });
 }
@@ -59,7 +60,7 @@ export async function isValid(simulator: Simulator): Promise<boolean>
 {
     return _execFile('xcrun', ['simctl', 'list', 'devices', '--json'])
         .then(({stdout, stderr}): boolean => {
-            if (stderr) { console.error(stderr); }
+            if (stderr) { logger.error(stderr); }
 
             let simctlList = JSON.parse(stdout) || {};
             let devices: Simulator[] = [];
@@ -77,14 +78,14 @@ export async function isValid(simulator: Simulator): Promise<boolean>
 
             return !!devices.length;
         }).catch(e => {
-            console.log(e);
+            logger.error(e);
             return false;
         });
 }
 
 export async function boot(udid: string): Promise<void>
 {
-    console.log(`Booting simulator (udid: ${udid}) if required`);
+    logger.log(`Booting simulator (udid: ${udid}) if required`);
     let time = new Date().getTime();
 
     try
@@ -101,22 +102,22 @@ export async function boot(udid: string): Promise<void>
         }
     }
 
-    console.log(`Booted in ${new Date().getTime() - time} ms`);
+    logger.log(`Booted in ${new Date().getTime() - time} ms`);
 }
 
 export async function install(udid: string, path: string): Promise<void>
 {
-    console.log(`Installing app (path: ${path}) to simulator (udid: ${udid})`);
+    logger.log(`Installing app (path: ${path}) to simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
     await _execFile('xcrun', ['simctl', 'install', udid, path]);
 
-    console.log(`Installed in ${new Date().getTime() - time} ms`);
+    logger.log(`Installed in ${new Date().getTime() - time} ms`);
 }
 
 export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, waitForDebugger: boolean = false): Promise<Number>
 {
-    console.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
+    logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
     args = args ?? [];
@@ -143,18 +144,18 @@ export async function launch(udid: string, bundleId: string, args: string[], env
         let pid = Number.parseInt(match[1]);
         if (pid > 0)
         {
-            console.log(`Launched in ${new Date().getTime() - time} ms`);
+            logger.log(`Launched in ${new Date().getTime() - time} ms`);
             return pid;
         }
     }
 
-    console.log(`Launch failed in ${new Date().getTime() - time} ms`);
+    logger.log(`Launch failed in ${new Date().getTime() - time} ms`);
     throw new Error("Could not launch and get pid");
 }
 
 export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
 {
-    console.log(`Getting pid (appBundleId: ${appBundleId}) for simulator (udid: ${udid})`);
+    logger.log(`Getting pid (appBundleId: ${appBundleId}) for simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
     // simctl spawn booted launchctl list
@@ -165,6 +166,6 @@ export async function getPidFor(udid: string, appBundleId: string): Promise<Numb
         throw new Error(`Could not find pid for ${appBundleId}`);
     }
     
-    console.log(`Got pid in ${new Date().getTime() - time} ms`);
+    logger.log(`Got pid in ${new Date().getTime() - time} ms`);
     return parseInt(match[1]);
 }

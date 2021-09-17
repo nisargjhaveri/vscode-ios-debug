@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as logger from './logger';
 import { Device, Simulator, Target } from './commonTypes';
 import { listTargets, isValid as isValidTarget, getTarget } from './targets';
 
@@ -83,7 +84,7 @@ export async function pickTarget()
 		await _updateTarget(target);
 	}
 
-	console.log(target);
+	logger.log("Picked target", target);
 
 	return target;
 }
@@ -99,8 +100,6 @@ export async function _getOrPickTarget()
 		target = await pickTarget();
 	}
 
-	console.log(target);
-
 	return target;
 }
 
@@ -113,7 +112,7 @@ export async function getTargetFromUDID(udid: string)
 		await _updateTarget(target);
 	}
 
-	console.log(target);
+	logger.log(`Got target for udid: ${udid}`, target);
 
 	return target;
 }

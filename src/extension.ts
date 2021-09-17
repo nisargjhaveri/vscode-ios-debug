@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './debugConfigProvider';
 import * as targetPicker from './targetPicker';
+import * as logger from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Activating extension "ios-debug"');
+	logger.activate();
+	logger.log('Activating extension "ios-debug"');
 
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.pickTarget', targetPicker.pickTarget));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug._getOrPickTarget', targetPicker._getOrPickTarget));
