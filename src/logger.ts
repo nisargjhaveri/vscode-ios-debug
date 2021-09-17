@@ -7,7 +7,7 @@ let channel = {
 function getFormattedTime()
 {
     let time = new Date();
-    return `${time.getFullYear()}-${time.getMonth()+1}-${time.getDate()} ${time.getHours()}:${time.getMinutes()}`
+    return `${time.getFullYear()}-${time.getMonth()+1}-${time.getDate()} ${time.getHours()}:${time.getMinutes()}`;
 }
 
 function formatSingleMessage(message: any)
