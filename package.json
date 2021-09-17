@@ -56,6 +56,33 @@
 								"type": "string"
 							}
 						}
+					},
+					"attach": {
+						"properties": {
+							"iosTarget": {
+								"description": "Target ios. Specify target UDID or `true` to select target.",
+								"anyOf": [
+									{
+										"type": "string"
+									},
+									{
+										"enum": [
+											false,
+											"select",
+											"last-selected"
+										]
+									}
+								]
+							},
+							"iosBundleId": {
+								"description": "Bundle ID of the app to debug",
+								"type": "string"
+							},
+							"sessionName": {
+								"description": "Update the debug session name to easily identify multiple running sessions",
+								"type": "string"
+							}
+						}
 					}
 				}
 			}

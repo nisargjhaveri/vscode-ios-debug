@@ -36,7 +36,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
         dbgConfig.iosTarget = target;
 
+        dbgConfig.iosRequest = dbgConfig.request;
         dbgConfig.request = target.type === "Simulator" ? "attach" : dbgConfig.request;
+        dbgConfig.request = target.type === "Device" ? "launch" : dbgConfig.request;
 
         dbgConfig.initCommands = (dbgConfig.initCommands instanceof Array) ? dbgConfig.initCommands : [];
         dbgConfig.initCommands.unshift(`platform select ${lldbPlatform[target.type]}`);
@@ -57,14 +59,27 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
         if (target.type === "Simulator")
         {
-            let pid = await targetCommand.simulatorInstallAndLaunch({
-                udid: target.udid,
-                path: dbgConfig.program,
-                bundleId: dbgConfig.iosBundleId,
-                env: dbgConfig.env,
-                args: dbgConfig.args,
-                waitForDebugger: true,
-            });
+            let pid: string|void;
+
+            if (dbgConfig.iosRequest === "launch")
+            {
+                pid = await targetCommand.simulatorInstallAndLaunch({
+                    udid: target.udid,
+                    path: dbgConfig.program,
+                    bundleId: dbgConfig.iosBundleId,
+                    env: dbgConfig.env,
+                    args: dbgConfig.args,
+                    waitForDebugger: true,
+                });
+            }
+            else
+            {
+                pid = await targetCommand.simulatorGetPidFor({
+                    udid: target.udid,
+                    bundleId: dbgConfig.iosBundleId,
+                });
+            }
+
             if (!pid) { return null; }
 
             dbgConfig.pid = pid;
@@ -74,10 +89,22 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
         else if (target.type === "Device")
         {
-            let platformPath = await targetCommand.deviceInstall({
-                udid: target.udid,
-                path: dbgConfig.program,
-            });
+            let platformPath: string|void;
+            if (dbgConfig.iosRequest === "launch")
+            {
+                platformPath = await targetCommand.deviceInstall({
+                    udid: target.udid,
+                    path: dbgConfig.program,
+                });
+            }
+            else
+            {
+                platformPath = await targetCommand.deviceAppPath({
+                    udid: target.udid,
+                    bundleId: dbgConfig.iosBundleId,
+                });
+            }
+
             if (!platformPath) { return null; }
 
             let debugserverPort = await targetCommand.deviceDebugserver({

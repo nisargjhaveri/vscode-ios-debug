@@ -6,13 +6,21 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Debug Sample App",
+			"name": "Launch Sample App",
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
 			"iosBundleId": "com.ios-debug.Sample-App",
 			"iosTarget": "select",
 			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			"name": "Attach Sample App",
+			"type": "lldb",
+			"request": "attach",
+			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
+			"iosBundleId": "com.ios-debug.Sample-App",
+			"iosTarget": "select",
 		},
 	]
 }

@@ -38,16 +38,18 @@ The extension depends on [CodeLLDB](https://marketplace.visualstudio.com/items?i
 
 Here are some of the common options used for setting up the launch config for debugging on iOS.
 
+When `request` is set to `launch`, the app is launched on the iOS device or simulator and attached for debugging. When `request` is set to `attach`, the debugger tries to attach to the app already launched on the iOS device or simulator.
+
 |parameter          |type|req |         |
 |-------------------|----|:--:|---------|
 |**name**           |string|Y| Launch configuration name.
 |**type**           |string|Y| Set to `lldb`.
-|**request**        |string|Y| Set to `launch`.
+|**request**        |string|Y| Set to `launch` or `attach`.
 |**program**        |string|Y| Path to the built `<name>.app` file for your app.
 |**iosBundleId**    |string|Y| App bundle identifier for the specified app.
 |**iosTarget**      |string|Y| If this config should target iOS.<ul><li>`false` (default) if this config is not for iOS debugging</li><li>`"select"` if the target picker should be shown</li><li>`"last-selected"` if last selected target should be used if available</li></ul>
-|**args**           |[string]| | Command line parameters to pass while launching the app
-|**env**            |dictionary| | Additional environment variables.
+|**args**           |[string]| | Command line parameters to pass while launching the app. Only available with `request = launch`.
+|**env**            |dictionary| | Additional environment variables when launching the app. Only available with `request = launch`.
 
 
 ## Target selection
@@ -68,6 +70,5 @@ The extension exposes a few commands that can be used in tasks or launch config 
 
 
 # Known limitations
-- Currently only `launch` request is supported for both simulators and devices. `attach` request doesn't work yet.
 - UI debugging features (e.g. Debug View Hierarchy, etc.) for iOS are out-of-scope for now. You need to use Xcode for that.
 - "Restart" debugging doesn't work reliably from VS Code. You need to stop and start debugging again.

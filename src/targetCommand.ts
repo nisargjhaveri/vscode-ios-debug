@@ -79,6 +79,14 @@ export async function simulatorInstallAndLaunch(a: {udid: string, path: string, 
 	});
 }
 
+export async function simulatorGetPidFor(args: {udid: string, bundleId: string})
+{
+	let {udid, bundleId} = await resolveArgs(args);
+
+	return simulator.getPidFor(udid, bundleId)
+		.then((pid) => pid.toString());
+}
+
 export async function deviceAppPath(args: {udid: string, bundleId: string})
 {
 	let {udid, bundleId} = await resolveArgs(args);
