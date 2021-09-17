@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as simulator from './simulators';
 import * as device from './devices';
+import { targetUDID } from './targetPicker';
 import { PromiseWithChild } from 'child_process';
 
 
@@ -8,7 +9,7 @@ async function resolveArgs(args: any)
 {
 	if (!args.udid)
 	{
-		args.udid = await vscode.commands.executeCommand('ios-debug.targetUDID');
+		args.udid = await targetUDID();
 	}
 
 	return args;
@@ -76,6 +77,13 @@ export async function simulatorInstallAndLaunch(a: {udid: string, path: string, 
 				vscode.window.showErrorMessage("Failed to install and launch app on simulator");
 			});;;
 	});
+}
+
+export async function deviceAppPath(args: {udid: string, bundleId: string})
+{
+	let {udid, bundleId} = await resolveArgs(args);
+
+	return device.getAppDevicePath(udid, bundleId);
 }
 
 export async function deviceInstall(args: {udid: string, path: string})

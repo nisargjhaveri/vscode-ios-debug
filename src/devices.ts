@@ -171,3 +171,40 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
         exec: p,
     };
 }
+
+export async function getAppDevicePath(udid: string, appBundleId: string) {
+    console.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--list_bundle_id', '--json', '-k', 'Path']);
+
+    let appDevicePath: string|undefined = await new Promise((resolve, reject) => {
+        p.catch(reject);
+
+        let eventFound = false;
+        p.child.stdout?.pipe(StreamValues.withParser())
+            .on('data', (data) => {
+                let event = data.value;
+
+                if (event.Event === "ListBundleId")
+                {
+                    eventFound = true;
+
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    let apps: {[appBundleId: string]: {"CFBundleIdentifier": string, "Path": string}} = event.Apps;
+                    resolve(appBundleId in apps ? apps[appBundleId]?.Path : undefined);
+                }
+            })
+            .on("end", () => {
+                if (!eventFound) {
+                    resolve(undefined);
+                }
+            });
+    });
+
+    await p;
+
+    console.log(`App device path (${appDevicePath}) retrieved in ${new Date().getTime() - time} ms`);
+
+    return appDevicePath;
+}
