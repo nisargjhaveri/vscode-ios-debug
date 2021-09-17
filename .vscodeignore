@@ -16,5 +16,8 @@ node_modules/ios-deploy/_Frameworks/**
 node_modules/ios-deploy/build/**
 !node_modules/ios-deploy/build/Release/ios-deploy
 
+# Don't bundle examples
+examples/**
+
 # Don't bundle screencast to reduce extension size
 images/screencast.gif
