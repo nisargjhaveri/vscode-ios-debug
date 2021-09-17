@@ -2,7 +2,13 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
-## [Unreleased]
+## v0.2.0
+### Added
+- Add support for attach request.
+- Better logging in vscode output panel for troubleshooting.
+
+### Removed
+- Removed some undocumented commands exposed earlier.
 
 
 ## v0.1.0
