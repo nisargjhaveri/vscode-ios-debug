@@ -91,7 +91,7 @@ export async function boot(udid: string): Promise<void>
     {
         await _execFile('xcrun', ['simctl', 'boot', udid]);
     }
-    catch (e)
+    catch (e: any)
     {
         let {stderr} = e;
 

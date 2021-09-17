@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Target, TargetType } from './commonTypes';
+import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
 
 const lldbPlatform: {[T in TargetType]: string} = {
@@ -56,12 +57,13 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
         if (target.type === "Simulator")
         {
-            let pid = await vscode.commands.executeCommand("ios-debug.simulator.installAndlaunchForDebug", {
+            let pid = await targetCommand.simulatorInstallAndLaunch({
                 udid: target.udid,
                 path: dbgConfig.program,
                 bundleId: dbgConfig.iosBundleId,
                 env: dbgConfig.env,
                 args: dbgConfig.args,
+                waitForDebugger: true,
             });
             if (!pid) { return null; }
 
@@ -72,13 +74,13 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
         else if (target.type === "Device")
         {
-            let platformPath = await vscode.commands.executeCommand("ios-debug.device.install", {
+            let platformPath = await targetCommand.deviceInstall({
                 udid: target.udid,
                 path: dbgConfig.program,
             });
             if (!platformPath) { return null; }
 
-            let debugserverPort = await vscode.commands.executeCommand("ios-debug.device.debugserver", {
+            let debugserverPort = await targetCommand.deviceDebugserver({
                 udid: target.udid,
             });
             if (!debugserverPort) { return null;}

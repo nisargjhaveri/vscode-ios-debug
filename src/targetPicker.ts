@@ -96,7 +96,7 @@ export async function _getOrPickTarget()
 	if (!isValid)
 	{
 		await _updateTarget(undefined);
-		target = await vscode.commands.executeCommand('ios-debug.pickTarget');
+		target = await pickTarget();
 	}
 
 	console.log(target);
@@ -120,28 +120,28 @@ export async function getTargetFromUDID(udid: string)
 
 export async function targetUDID()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
+	let target: Target|undefined = await _getOrPickTarget();
 
 	return target?.udid;
 }
 
 export async function targetType ()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
+	let target: Target|undefined = await _getOrPickTarget();
 
 	return target?.type;
 }
 
 export async function targetName()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
+	let target: Target|undefined = await _getOrPickTarget();
 
 	return target?.name;
 }
 
 export async function targetSdk()
 {
-	let target: Target|undefined = await vscode.commands.executeCommand('ios-debug._getOrPickTarget');
+	let target: Target|undefined = await _getOrPickTarget();
 
 	return target?.sdk;
 }
