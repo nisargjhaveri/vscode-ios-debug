@@ -12,10 +12,16 @@ function getFormattedTime()
 
 function formatSingleMessage(message: any)
 {
-    if (typeof message === "object") {
+    if (typeof(message) === "undefined") {
+        return "undefined";
+    }
+    else if (message === null) {
+        return "null";
+    }
+    else if (typeof message === "object") {
         return JSON.stringify(message, undefined, 4);
     }
-    else {
+    else if (message.toString) {
         return message.toString();
     }
 }
