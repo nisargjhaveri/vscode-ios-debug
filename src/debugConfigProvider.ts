@@ -113,6 +113,8 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             });
             if (!debugserverPort) { return null;}
 
+            dbgConfig.iosDebugserverPort = debugserverPort;
+
             dbgConfig.preRunCommands = (dbgConfig.preRunCommands instanceof Array) ? dbgConfig.preRunCommands : [];
             dbgConfig.preRunCommands.push(`script lldb.target.module[0].SetPlatformFileSpec(lldb.SBFileSpec('${platformPath}'))`);
             dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);

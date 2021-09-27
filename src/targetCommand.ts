@@ -3,7 +3,10 @@ import * as logger from './logger';
 import * as simulator from './simulators';
 import * as device from './devices';
 import { targetUDID } from './targetPicker';
-import { PromiseWithChild } from 'child_process';
+import { ChildProcess, PromiseWithChild } from 'child_process';
+
+let context: vscode.ExtensionContext;
+let debugserverProcesses: {[port: number]: ChildProcess} = {};
 
 
 async function resolveArgs(args: any)
@@ -153,17 +156,9 @@ export async function deviceDebugserver(args: {udid: string})
 			.then(() => device.debugserver(udid, cancellationToken))
 			.then(({port, exec}) => {
 
-				let task = new vscode.Task({type: "ios-debug"}, vscode.TaskScope.Workspace, "debugserver", "ios-debug", new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
-					return new DebugserverTaskTerminal(exec, port);
-				}));
-				task.presentationOptions = {
-					focus: false,
-					reveal: vscode.TaskRevealKind.Never
-				};
+				debugserverProcesses[port] = exec.child;
 
-				vscode.tasks.executeTask(task);
-
-				return port.toString();
+				return port;
 			})
 			.catch((e) => {
 				vscode.window.showErrorMessage("Failed to start debugserver");
@@ -171,37 +166,34 @@ export async function deviceDebugserver(args: {udid: string})
 	});
 }
 
-class DebugserverTaskTerminal implements vscode.Pseudoterminal {
-	private writeEmitter = new vscode.EventEmitter<string>();
-	onDidWrite: vscode.Event<string> = this.writeEmitter.event;
-	private closeEmitter = new vscode.EventEmitter<number>();
-	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
+export function deviceDebugserverCleanup(port: number) {
+	logger.log(`Cleaning up debugserver at port ${port}`);
 
-	constructor(private exec: PromiseWithChild<any>, private port: Number) {}
-
-	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-		this.writeEmitter.fire(`Debugserver started on port: ${this.port}\r\n`);
-
-		if (this.exec.child.killed || this.exec.child.exitCode !== null) 
-		{
-			this.writeEmitter.fire(`Debugserver closed with exit code: ${this.exec.child.exitCode}\r\n`);
-			this.closeEmitter.fire(0);
-			return;
-		}
-
-		this.exec.child.on('close', (code, signal) => {
-			this.writeEmitter.fire(`Debugserver closed on signal: ${signal} with exit code: ${code}\r\n`);
-			this.closeEmitter.fire(0);
-		});
+	if (!(port in debugserverProcesses)) {
+		return;
 	}
 
-	close(): void {}
+	let proc = debugserverProcesses[port];
 
-	handleInput(data: string): void {
-		if (data === "\u0003")
-		{
-			this.exec.child.kill();
-			this.writeEmitter.fire("^C");
-		}
+	if (proc.killed || proc.exitCode !== null) {
+		// Process is already killed, do nothing
 	}
+	else {
+		proc.kill();
+	}
+
+	delete debugserverProcesses[port];
+}
+
+export function activate(c: vscode.ExtensionContext) {
+	context = c;
+
+	// Clean all open debugserver processes
+	context.subscriptions.push({
+		dispose() {
+			for(const port in debugserverProcesses) {
+				deviceDebugserverCleanup(Number(port));
+			}
+		}
+	});
 }

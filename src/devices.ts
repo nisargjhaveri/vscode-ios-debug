@@ -138,7 +138,7 @@ export async function install(udid: string, path: string, cancellationToken: {ca
     return installationPath;
 }
 
-export async function debugserver(udid: string, cancellationToken: {cancel(): void}, progressCallback?: (event: any) => void): Promise<{port: Number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
+export async function debugserver(udid: string, cancellationToken: {cancel(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
 {
     logger.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
@@ -147,7 +147,7 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
 
     cancellationToken.cancel = () => p.child.kill();
 
-    let port: Number = await new Promise((resolve, reject) => {
+    let port: number = await new Promise((resolve, reject) => {
         p.catch(reject);
 
         p.child.stdout?.pipe(StreamValues.withParser())
@@ -169,7 +169,7 @@ export async function debugserver(udid: string, cancellationToken: {cancel(): vo
     {
         throw Error('Could not start debugserver and get port');
     }
-    logger.log(`Port: ${port}`);
+    logger.log(`Debugserver Port: ${port}`);
 
     return {
         port: port,

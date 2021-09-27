@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './debugConfigProvider';
+import * as debugLifecycleManager from './debugLifecycleManager';
 import * as targetPicker from './targetPicker';
+import * as targetCommand from './targetCommand';
 import * as logger from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -17,6 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lldb', new DebugConfigurationProvider()));
 
 	targetPicker.activate(context);
+	targetCommand.activate(context);
+	debugLifecycleManager.activate(context);
 }
 
 // this method is called when your extension is deactivated
