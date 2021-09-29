@@ -21,6 +21,16 @@ export async function listSimulators(): Promise<Simulator[]>
 
             // Add all available devices
             for (const runtimeIdentifier of Object.keys(simctlList.devices)) {
+                // We're only interested in iOS simulators
+                if (!runtimeIdentifier.startsWith("com.apple.CoreSimulator.SimRuntime.iOS")) {
+                    continue;
+                }
+
+                // In some cases when you have a booted simulator with an unavailable runtime,
+                // the device shows up as available. The runtime properties are not available at this time.
+                // So, use this fallback.
+                const runtimeFallback = runtimeIdentifier.replace("com.apple.CoreSimulator.SimRuntime.", "");
+
                 devices.push(
                     ...
                     simctlList.devices[runtimeIdentifier]
@@ -29,9 +39,9 @@ export async function listSimulators(): Promise<Simulator[]>
                             udid,
                             name,
                             type: "Simulator",
-                            version: runtimes[runtimeIdentifier].version,
-                            buildVersion: runtimes[runtimeIdentifier].buildversion,
-                            runtime: runtimes[runtimeIdentifier].name,
+                            version: runtimes[runtimeIdentifier]?.version || runtimeFallback.replace(/(.*?)-(.*)/, "$2").replace("-", "."),
+                            buildVersion: runtimes[runtimeIdentifier]?.buildversion || runtimeFallback,
+                            runtime: runtimes[runtimeIdentifier]?.name || runtimeFallback.replace(/(.*?)-(.*)/, "$1 $2").replace("-", "."),
                             sdk: "iphonesimulator",
                             dataPath,
                             logPath,
@@ -41,7 +51,6 @@ export async function listSimulators(): Promise<Simulator[]>
             }
 
             devices = devices
-                        .filter((d: Simulator) => d.runtime.startsWith('iOS'))
                         .sort((a: Simulator, b: Simulator) => (
                             b.runtime.localeCompare(a.runtime, undefined, {numeric: true})
                                 || a.name.localeCompare(b.name, undefined, {numeric: true})
