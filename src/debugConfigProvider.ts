@@ -28,7 +28,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     async resolveDebugConfiguration(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
-        logger.log(dbgConfig);
+        logger.log("resolveDebugConfiguration", dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
 
@@ -48,7 +48,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     async resolveDebugConfigurationWithSubstitutedVariables(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
-        logger.log(dbgConfig);
+        logger.log("resolveDebugConfigurationWithSubstitutedVariables", dbgConfig);
 
         if (!dbgConfig.iosTarget) { return dbgConfig; }
 
@@ -120,6 +120,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);
         }
 
+        logger.log("resolved debug configuration", dbgConfig);
         return dbgConfig;
     }
 }
