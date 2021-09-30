@@ -2,6 +2,15 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.2.1
+### Added
+- Better cleanup of ios-debug debugserver instances
+- Support booted simulators with missing runtime
+
+### Changed
+- Minor fixes in logging
+
+
 ## v0.2.0
 ### Added
 - Add support for attach request.
