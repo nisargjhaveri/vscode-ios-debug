@@ -1,8 +1,12 @@
+import * as crypto from 'crypto';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as logger from './logger';
-import { Target, TargetType } from './commonTypes';
+import { Simulator, Target, TargetType } from './commonTypes';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
+
+let context: vscode.ExtensionContext;
 
 const lldbPlatform: {[T in TargetType]: string} = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -10,6 +14,22 @@ const lldbPlatform: {[T in TargetType]: string} = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     "Device": "remote-ios"
 };
+
+function randomString() {
+    let random;
+
+    try {
+        random = crypto.randomBytes(16);
+    } catch (e) {
+        random = crypto.pseudoRandomBytes(16);
+    }
+
+    return random.toString('hex');
+}
+
+function getOutputBasename() {
+    return path.join('/tmp', `ios-${randomString()}`);
+}
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider
 {
@@ -42,6 +62,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         dbgConfig.request = target.type === "Device" ? "launch" : dbgConfig.request;
 
         dbgConfig.initCommands = (dbgConfig.initCommands instanceof Array) ? dbgConfig.initCommands : [];
+        dbgConfig.initCommands.unshift(`command script import ${context.asAbsolutePath("lldb/logs.py")}`);
         dbgConfig.initCommands.unshift(`platform select ${lldbPlatform[target.type]}`);
 
         return dbgConfig;
@@ -64,14 +85,23 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
             if (dbgConfig.iosRequest === "launch")
             {
+                let outputBasename = getOutputBasename();
+                let stdout = `${outputBasename}-stdout`;
+                let stderr = `${outputBasename}-stderr`;
+
                 pid = await targetCommand.simulatorInstallAndLaunch({
                     udid: target.udid,
                     path: dbgConfig.program,
                     bundleId: dbgConfig.iosBundleId,
                     env: dbgConfig.env,
                     args: dbgConfig.args,
+                    stdio: {stdout, stderr},
                     waitForDebugger: true,
                 });
+
+                let simulatorDataPath = (target as Simulator).dataPath;
+                dbgConfig.initCommands.push(`follow ${path.join(simulatorDataPath, stdout)}`);
+                dbgConfig.initCommands.push(`follow ${path.join(simulatorDataPath, stderr)}`);
             }
             else
             {
@@ -123,4 +153,8 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         logger.log("resolved debug configuration", dbgConfig);
         return dbgConfig;
     }
+}
+
+export function activate(c: vscode.ExtensionContext) {
+    context = c;
 }

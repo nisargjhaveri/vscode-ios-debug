@@ -124,7 +124,7 @@ export async function install(udid: string, path: string): Promise<void>
     logger.log(`Installed in ${new Date().getTime() - time} ms`);
 }
 
-export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, waitForDebugger: boolean = false): Promise<Number>
+export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<Number>
 {
     logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
@@ -140,7 +140,17 @@ export async function launch(udid: string, bundleId: string, args: string[], env
 
     let {stdout} = await _execFile(
         'xcrun',
-        ['simctl', 'launch', ...(waitForDebugger ? ['--wait-for-debugger'] : []), '--terminate-running-process', udid, bundleId, ...args],
+        [
+            'simctl', 
+            'launch', 
+            ...(waitForDebugger ? ['--wait-for-debugger'] : []),
+            '--terminate-running-process',
+            ...(stdio?.stdout ? [`--stdout=${stdio.stdout}`] : []),
+            ...(stdio?.stderr ? [`--stderr=${stdio.stderr}`] : []),
+            udid,
+            bundleId,
+            ...args
+        ],
         {
             env: simctlEnv
         }

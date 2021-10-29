@@ -60,9 +60,9 @@ export async function simulatorLaunch(a: {udid: string, bundleId: string, args?:
 	});
 }
 
-export async function simulatorInstallAndLaunch(a: {udid: string, path: string, bundleId: string, args?: string[], env?: {[key: string]: string}, waitForDebugger: boolean})
+export async function simulatorInstallAndLaunch(a: {udid: string, path: string, bundleId: string, args?: string[], env?: {[key: string]: string}, stdio?: {stdout?: string, stderr?: string}, waitForDebugger: boolean})
 {
-	let {udid, path, bundleId, args, env, waitForDebugger} = await resolveArgs(a);
+	let {udid, path, bundleId, args, env, stdio: {stdout, stderr}, waitForDebugger} = await resolveArgs(a);
 
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
@@ -75,7 +75,7 @@ export async function simulatorInstallAndLaunch(a: {udid: string, path: string, 
 			.then(() => progress.report({message: "Installing app"}))
 			.then(() => simulator.install(udid, path))
 			.then(() => progress.report({message: "Lauching app"}))
-			.then(() => simulator.launch(udid, bundleId, args, env, waitForDebugger))
+			.then(() => simulator.launch(udid, bundleId, args, env, {stdout, stderr}, waitForDebugger))
 			.then((pid) => pid.toString())
 			.catch((e) => {
 				vscode.window.showErrorMessage("Failed to install and launch app on simulator");
