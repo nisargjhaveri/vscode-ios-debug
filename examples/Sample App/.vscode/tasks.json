@@ -9,7 +9,8 @@
 			"command": "xcodebuild",
 			"args": [
 				"-configuration", "Debug", 
-				"-sdk", "${command:ios-debug.targetSdk}"
+				"-sdk", "${command:ios-debug.targetSdk}",
+				"-allowProvisioningUpdates",
 			],
 			"group": {
 				"kind": "build",
