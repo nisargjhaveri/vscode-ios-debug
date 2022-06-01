@@ -62,7 +62,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         dbgConfig.request = target.type === "Device" ? "launch" : dbgConfig.request;
 
         dbgConfig.initCommands = (dbgConfig.initCommands instanceof Array) ? dbgConfig.initCommands : [];
-        dbgConfig.initCommands.unshift(`command script import ${context.asAbsolutePath("lldb/logs.py")}`);
+        dbgConfig.initCommands.unshift(`command script import '${context.asAbsolutePath("lldb/logs.py")}'`);
         dbgConfig.initCommands.unshift(`platform select ${lldbPlatform[target.type]}`);
 
         return dbgConfig;
@@ -107,9 +107,8 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                     waitForDebugger: true,
                 });
 
-                let simulatorDataPath = (target as Simulator).dataPath;
-                dbgConfig.initCommands.push(`follow ${path.join(simulatorDataPath, stdout)}`);
-                dbgConfig.initCommands.push(`follow ${path.join(simulatorDataPath, stderr)}`);
+                dbgConfig.initCommands.push(`follow ${stdout}`);
+                dbgConfig.initCommands.push(`follow ${stderr}`);
             }
             else
             {

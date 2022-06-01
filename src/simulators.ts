@@ -1,6 +1,8 @@
 import { Simulator } from './commonTypes';
 import { _execFile } from './utils';
 import * as logger from './logger';
+import * as fs from 'fs';
+import { spawn } from 'child_process';
 
 export async function listSimulators(): Promise<Simulator[]>
 {
@@ -138,33 +140,35 @@ export async function launch(udid: string, bundleId: string, args: string[], env
         simctlEnv[`SIMCTL_CHILD_${key}`] = env[key];
     });
 
-    let {stdout} = await _execFile(
+    spawn(
         'xcrun',
         [
             'simctl', 
             'launch', 
             ...(waitForDebugger ? ['--wait-for-debugger'] : []),
             '--terminate-running-process',
-            ...(stdio?.stdout ? [`--stdout=${stdio.stdout}`] : []),
-            ...(stdio?.stderr ? [`--stderr=${stdio.stderr}`] : []),
+            '--console-pty',
             udid,
             bundleId,
             ...args
         ],
         {
-            env: simctlEnv
+            env: simctlEnv,
+            stdio: ['ignore', fs.openSync(stdio.stdout, 'a'), fs.openSync(stdio.stderr, 'a')]
         }
     );
 
-    let match = stdout.match(new RegExp(`^${bundleId}: (-?\\d+)`));
-
-    if (match && match[1])
-    {
-        let pid = Number.parseInt(match[1]);
-        if (pid > 0)
-        {
+    // simctl doesn't print the pid until the process terminates (output is buffered), so instead
+    // get the pid once the app is launched.
+    let start = new Date().getTime();
+    while (new Date().getTime() - start < 10_000) {
+        try {
+            let pid = await getPidFor(udid, bundleId);
             logger.log(`Launched in ${new Date().getTime() - time} ms`);
             return pid;
+        } catch (error) {
+            logger.log(`Waiting for app to launch`);
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
     }
 
