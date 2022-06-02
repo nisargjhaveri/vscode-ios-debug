@@ -6,6 +6,7 @@
 //
 
 #import "ViewController.h"
+#import "Sample_App-Swift.h"
 
 @interface ViewController ()
 
@@ -16,6 +17,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+
+    fprintf(stderr, "Objc fprintf\n");
+    NSLog(@"Objc NSLog");
+    [[Logging alloc] trylog];
 }
 
 
