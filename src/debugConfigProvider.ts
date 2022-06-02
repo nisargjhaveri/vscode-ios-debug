@@ -77,6 +77,14 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             dbgConfig.name = dbgConfig.sessionName;
         }
 
+        // Enable OS_ACTIVITY_DT_MODE by default unless disabled for both Simulator and Device
+        // This is required for logging to work properly
+        dbgConfig.env = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            "OS_ACTIVITY_DT_MODE": "YES",
+            ...dbgConfig.env
+        };
+
         let target: Target = dbgConfig.iosTarget;
 
         if (target.type === "Simulator")
