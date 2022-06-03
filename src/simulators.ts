@@ -96,21 +96,7 @@ export async function boot(udid: string): Promise<void>
 {
     logger.log(`Booting simulator (udid: ${udid}) if required`);
     let time = new Date().getTime();
-
-    try
-    {
-        await _execFile('xcrun', ['simctl', 'boot', udid]);
-    }
-    catch (e: any)
-    {
-        let {stderr} = e;
-
-        if (!stderr.match("Unable to boot device in current state: Booted"))
-        {
-            throw e;
-        }
-    }
-
+    await _execFile('xcrun', ['simctl', 'bootstatus', udid, '-b']);
     logger.log(`Booted in ${new Date().getTime() - time} ms`);
 }
 
