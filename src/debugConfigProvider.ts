@@ -123,6 +123,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
             dbgConfig.pid = pid;
 
+            dbgConfig.postRunCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.postRunCommands : [];
+            dbgConfig.postRunCommands.push(`platform shell open -a Simulator --args -CurrentDeviceUDID ${target.udid}`);
+
             delete dbgConfig.env;
             delete dbgConfig.args;
         }
