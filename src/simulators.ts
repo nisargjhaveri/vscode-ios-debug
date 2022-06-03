@@ -129,6 +129,8 @@ export async function launch(udid: string, bundleId: string, args: string[], env
     logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
+    await _execFile('open', ['-a', 'Simulator', '--args', '-CurrentDeviceUDID', udid]);
+
     args = args ?? [];
     env = env ?? {};
 
