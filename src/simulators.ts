@@ -140,7 +140,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
         simctlEnv[`SIMCTL_CHILD_${key}`] = env[key];
     });
 
-    spawn(
+    let process = spawn(
         'xcrun',
         [
             'simctl', 
@@ -153,10 +153,11 @@ export async function launch(udid: string, bundleId: string, args: string[], env
             ...args
         ],
         {
-            env: simctlEnv,
-            stdio: ['ignore', fs.openSync(stdio.stdout, 'a'), fs.openSync(stdio.stderr, 'a')]
+            env: simctlEnv
         }
     );
+    process.stdout.pipe(fs.createWriteStream(stdio.stdout));
+    process.stderr.pipe(fs.createWriteStream(stdio.stderr));
 
     // simctl doesn't print the pid until the process terminates (output is buffered), so instead
     // get the pid once the app is launched.
