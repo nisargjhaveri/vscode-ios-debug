@@ -63,6 +63,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
         dbgConfig.initCommands = (dbgConfig.initCommands instanceof Array) ? dbgConfig.initCommands : [];
         dbgConfig.initCommands.unshift(`command script import '${context.asAbsolutePath("lldb/logs.py")}'`);
+        dbgConfig.initCommands.unshift(`command script import '${context.asAbsolutePath("lldb/simulator_focus.py")}'`);
         dbgConfig.initCommands.unshift(`platform select ${lldbPlatform[target.type]}`);
 
         return dbgConfig;
@@ -121,6 +122,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             if (!pid) { return null; }
 
             dbgConfig.pid = pid;
+
+            dbgConfig.postRunCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.postRunCommands : [];
+            dbgConfig.postRunCommands.push(`simulator-focus-monitor ${target.udid}`);
 
             delete dbgConfig.env;
             delete dbgConfig.args;
