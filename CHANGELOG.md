@@ -2,6 +2,15 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.2.2
+### Added
+- Logging support for Simulator, logs now appear for simulator launches as well
+
+### Changed
+- Fix: NSLog was not appearing earlier in device launches
+- Open Simulator app when booting if not already open
+
+
 ## v0.2.1
 ### Added
 - Better cleanup of ios-debug debugserver instances
