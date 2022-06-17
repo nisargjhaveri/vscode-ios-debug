@@ -124,7 +124,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             dbgConfig.pid = pid;
 
             dbgConfig.postRunCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.postRunCommands : [];
-            dbgConfig.postRunCommands.push(`simulator-focus-monitor ${target.udid}`);
+            dbgConfig.postRunCommands.push(`simulator-focus-monitor ${target.name} – ${target.runtime}`);
 
             delete dbgConfig.env;
             delete dbgConfig.args;
