@@ -86,7 +86,17 @@
 					}
 				}
 			}
-		]
+		],
+		"configuration": {
+			"title": "iOS Debugger",
+			"properties": {
+				"ios-debug.focusSimulator": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically focus iOS Simulator window when attaching or continuing after a breakpoint."
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

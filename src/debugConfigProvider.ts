@@ -2,9 +2,10 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as logger from './logger';
-import { Simulator, Target, TargetType } from './commonTypes';
+import { Target, TargetType } from './commonTypes';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
+import * as simulatorFocus from './simulatorFocus';
 
 let context: vscode.ExtensionContext;
 
@@ -92,6 +93,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         {
             let pid: string|void;
 
+            // Check if we have enough permissions for the simulator focus monitor.
+            let enableSimulatorFocusMonitor = vscode.workspace.getConfiguration().get('ios-debug.focusSimulator') && await simulatorFocus.tryEnsurePermissions();
+
             if (dbgConfig.iosRequest === "launch")
             {
                 let outputBasename = getOutputBasename();
@@ -123,8 +127,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
             dbgConfig.pid = pid;
 
-            dbgConfig.postRunCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.postRunCommands : [];
-            dbgConfig.postRunCommands.push(`simulator-focus-monitor ${target.name} – ${target.runtime}`);
+            if (enableSimulatorFocusMonitor) {
+                dbgConfig.postRunCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.postRunCommands : [];
+                dbgConfig.postRunCommands.push(`simulator-focus-monitor ${target.name} – ${target.runtime}`);
+            }
 
             delete dbgConfig.env;
             delete dbgConfig.args;
