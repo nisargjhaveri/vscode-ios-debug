@@ -92,7 +92,7 @@
 			"properties": {
 				"ios-debug.focusSimulator": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Automatically focus iOS Simulator window when attaching or continuing after a breakpoint."
 				}
 			}
