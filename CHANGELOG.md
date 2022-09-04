@@ -2,6 +2,10 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.3.1
+### Changed
+- Disable `ios-debug.focusSimulator` by default, since it was causing some unwanted behaviour and crashes.
+
 ## v0.3.0
 ### Added
 - Focus the simulator window automatically when attaching or continuing from breakpoints.
