@@ -99,7 +99,11 @@ export async function boot(udid: string): Promise<void>
     logger.log(`Booting simulator (udid: ${udid}) if required`);
     let time = new Date().getTime();
 
-    await _execFile('open', ['-g', '-a', 'Simulator', '--args', '-StartLastDeviceOnLaunch', '0']);
+    try {
+        await _execFile('open', ['-g', '-a', 'Simulator', '--args', '-StartLastDeviceOnLaunch', '0']);
+    } catch (e: any) {
+        logger.log(`Unable to open Simulator app (code: ${e.code}, stderr: "${e.stderr})"`);
+    }
     await _execFile('xcrun', ['simctl', 'bootstatus', udid, '-b']);
 
     logger.log(`Booted in ${new Date().getTime() - time} ms`);
