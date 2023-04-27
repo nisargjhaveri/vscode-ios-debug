@@ -2,6 +2,10 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.3.2
+### Changed
+- Minor improvements in logging and error handling while launching Simulator
+
 ## v0.3.1
 ### Changed
 - Disable `ios-debug.focusSimulator` by default, since it was causing some unwanted behaviour and crashes.
