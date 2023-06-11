@@ -124,7 +124,7 @@
 		"vscode-test": "^1.6.1"
 	},
 	"dependencies": {
-		"ios-deploy": "github:ios-control/ios-deploy",
+		"ios-deploy": "^1.12.2",
 		"stream-json": "^1.7.2"
 	}
 }
