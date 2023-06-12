@@ -94,6 +94,14 @@ export async function simulatorGetPidFor(args: {udid: string, bundleId: string})
 		.then((pid) => pid.toString());
 }
 
+export async function deviceGetPidFor(args: {udid: string, bundleId: string})
+{
+	let {udid, bundleId} = await resolveArgs(args);
+
+	return device.getPidFor(udid, bundleId)
+		.then((pid) => pid.toString());
+}
+
 export async function deviceAppPath(args: {udid: string, bundleId: string})
 {
 	let {udid, bundleId} = await resolveArgs(args);

@@ -172,7 +172,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
 
 export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
 {
-    logger.log(`Getting pid (appBundleId: ${appBundleId}) for simulator (udid: ${udid})`);
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
 
     // simctl spawn booted launchctl list
@@ -182,7 +182,9 @@ export async function getPidFor(udid: string, appBundleId: string): Promise<Numb
     if (!match) {
         throw new Error(`Could not find pid for ${appBundleId}`);
     }
-    
-    logger.log(`Got pid in ${new Date().getTime() - time} ms`);
-    return parseInt(match[1]);
+
+    let pid = parseInt(match[1]);
+
+    logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
+    return pid;
 }

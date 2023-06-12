@@ -213,3 +213,46 @@ export async function getAppDevicePath(udid: string, appBundleId: string) {
 
     return appDevicePath;
 }
+
+export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
+{
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--get_pid', '--bundle_id', appBundleId, '--json']);
+
+    let pid: number = await new Promise((resolve, reject) => {
+        p.catch(reject);
+
+        let eventFound = false;
+        p.child.stdout?.pipe(StreamValues.withParser())
+            .on('data', (data) => {
+                let event = data.value;
+
+                if (event.Event === "GetPid")
+                {
+                    eventFound = true;
+
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    let pid: number = event.pid;
+                    if (pid >= 0) {
+                        resolve(pid);
+                    }
+                    else {
+                        reject(new Error(`Could not find pid for ${appBundleId}`));
+                    }
+                }
+            })
+            .on("end", () => {
+                if (!eventFound) {
+                    reject(new Error(`Could not find pid for ${appBundleId}`));
+                }
+            });
+    });
+
+    await p;
+
+    logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
+
+    return pid;
+}

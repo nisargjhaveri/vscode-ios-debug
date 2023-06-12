@@ -60,7 +60,6 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
         dbgConfig.iosRequest = dbgConfig.request;
         dbgConfig.request = target.type === "Simulator" ? "attach" : dbgConfig.request;
-        dbgConfig.request = target.type === "Device" ? "launch" : dbgConfig.request;
 
         dbgConfig.initCommands = (dbgConfig.initCommands instanceof Array) ? dbgConfig.initCommands : [];
         dbgConfig.initCommands.unshift(`command script import '${context.asAbsolutePath("lldb/logs.py")}'`);
@@ -151,6 +150,15 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                     udid: target.udid,
                     bundleId: dbgConfig.iosBundleId,
                 });
+
+                let pid = await targetCommand.deviceGetPidFor({
+                    udid: target.udid,
+                    bundleId: dbgConfig.iosBundleId,
+                });
+
+                if (!pid) { return null; }
+
+                dbgConfig.pid = pid;
             }
 
             if (!platformPath) { return null; }
