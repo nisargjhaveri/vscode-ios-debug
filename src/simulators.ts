@@ -109,6 +109,16 @@ export async function boot(udid: string): Promise<void>
     logger.log(`Booted in ${new Date().getTime() - time} ms`);
 }
 
+export async function shutdown(udid: string): Promise<void>
+{
+    logger.log(`Shutting down simulator (udid: ${udid}) if required`);
+    let time = new Date().getTime();
+
+    await _execFile('xcrun', ['simctl', 'shutdown', udid]);
+
+    logger.log(`Shut down in ${new Date().getTime() - time} ms`);
+}
+
 export async function install(udid: string, path: string): Promise<void>
 {
     logger.log(`Installing app (path: ${path}) to simulator (udid: ${udid})`);
@@ -119,7 +129,7 @@ export async function install(udid: string, path: string): Promise<void>
     logger.log(`Installed in ${new Date().getTime() - time} ms`);
 }
 
-export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<Number>
+export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<number>
 {
     logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();
@@ -170,7 +180,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
     throw new Error("Could not launch and get pid");
 }
 
-export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
+export async function getPidFor(udid: string, appBundleId: string): Promise<number>
 {
     logger.log(`Getting pid for app (bundle id: ${appBundleId}) on simulator (udid: ${udid})`);
     let time = new Date().getTime();

@@ -214,7 +214,7 @@ export async function getAppDevicePath(udid: string, appBundleId: string) {
     return appDevicePath;
 }
 
-export async function getPidFor(udid: string, appBundleId: string): Promise<Number>
+export async function getPidFor(udid: string, appBundleId: string): Promise<number>
 {
     logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
     let time = new Date().getTime();
