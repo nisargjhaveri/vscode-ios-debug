@@ -102,8 +102,9 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
+		"pretest": "npm run compile && npm run lint && npm run build-example",
 		"lint": "eslint src --ext ts",
+		"build-example": "cd 'examples/Sample App/'; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphoneos; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphonesimulator",
 		"test": "node ./out/test/runTest.js"
 	},
 	"extensionDependencies": [
