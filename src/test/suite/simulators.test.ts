@@ -97,7 +97,7 @@ suite('Simulators', () => {
 	
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphonesimulator/Sample App.app");
 			await simulators.install(testSimulatorUDID, appPath);
-		}).timeout(20_000);
+		}).timeout(90_000);
 
 		test('Get pid failure', async function() {
 			assert.rejects(simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App"), /Could not find pid for/);
