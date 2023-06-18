@@ -96,7 +96,7 @@ suite('Simulators', () => {
 			await simulators.boot(testSimulatorUDID);
 	
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphonesimulator/Sample App.app");
-			assert.doesNotReject(simulators.install(testSimulatorUDID, appPath));
+			await simulators.install(testSimulatorUDID, appPath);
 		}).timeout(20_000);
 
 		test('Get pid failure', async function() {
