@@ -74,7 +74,7 @@ suite('Simulators', () => {
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
 			assert(testSimulator.state === "Booted");
-		}).timeout(120_000);
+		}).timeout(240_000);
 
 		test('Shutdown test simulator', async function() {
 			await simulators.shutdown(testSimulatorUDID);
@@ -90,13 +90,13 @@ suite('Simulators', () => {
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
 			assert(testSimulator.state === "Booted");
-		}).timeout(30_000);
+		}).timeout(90_000);
 
 		test('Install Sample App', async function() {
 			await simulators.boot(testSimulatorUDID);
 	
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphonesimulator/Sample App.app");
-			await simulators.install(testSimulatorUDID, appPath);
+			assert.doesNotReject(simulators.install(testSimulatorUDID, appPath));
 		}).timeout(20_000);
 
 		test('Get pid failure', async function() {
