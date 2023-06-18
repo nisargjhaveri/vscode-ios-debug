@@ -25,6 +25,9 @@
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],
+			"env": {
+				"IOS_DEBUG_TEST_DEVICE": "",
+			},
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
 			],

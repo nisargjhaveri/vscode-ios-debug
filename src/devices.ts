@@ -138,7 +138,25 @@ export async function install(udid: string, path: string, cancellationToken: {ca
     return installationPath;
 }
 
-export async function debugserver(udid: string, cancellationToken: {cancel(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
+export async function launch(udid: string, path: string): Promise<number>
+{
+    logger.log(`Launching app (path: ${path}) on device (udid: ${udid})`);
+    let time = new Date().getTime();
+
+    let {stdout, stderr} = await _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall']);
+
+    let match = stdout.match(new RegExp(`^Process (\\d+) detached$`, 'm'));
+    if (!match) {
+        throw new Error("Could not launch and get pid");
+    }
+
+    let pid = parseInt(match[1]);
+
+    logger.log(`Launched in ${new Date().getTime() - time} ms`);
+    return pid;
+}
+
+export async function debugserver(udid: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
 {
     logger.log(`Starting debugserver for device (udid: ${udid})`);
     let time = new Date().getTime();
