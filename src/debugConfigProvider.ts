@@ -48,6 +48,14 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         return undefined;
     }
 
+    ensureBundleId(dbgConfig: vscode.DebugConfiguration): string {
+        if (!dbgConfig.iosBundleId) {
+            throw new Error("Could not determine bundle id for the app");
+        }
+
+        return dbgConfig.iosBundleId;
+    }
+
     async resolveDebugConfiguration(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
         logger.log("resolveDebugConfiguration", dbgConfig);
 
@@ -104,7 +112,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                 pid = await targetCommand.simulatorInstallAndLaunch({
                     udid: target.udid,
                     path: dbgConfig.program,
-                    bundleId: dbgConfig.iosBundleId,
+                    bundleId: this.ensureBundleId(dbgConfig),
                     env: dbgConfig.env,
                     args: dbgConfig.args,
                     stdio: {stdout, stderr},
@@ -118,7 +126,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             {
                 pid = await targetCommand.simulatorGetPidFor({
                     udid: target.udid,
-                    bundleId: dbgConfig.iosBundleId,
+                    bundleId: this.ensureBundleId(dbgConfig),
                 });
             }
 
@@ -148,12 +156,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             {
                 platformPath = await targetCommand.deviceAppPath({
                     udid: target.udid,
-                    bundleId: dbgConfig.iosBundleId,
+                    bundleId: this.ensureBundleId(dbgConfig),
                 });
 
                 let pid = await targetCommand.deviceGetPidFor({
                     udid: target.udid,
-                    bundleId: dbgConfig.iosBundleId,
+                    bundleId: this.ensureBundleId(dbgConfig),
                 });
 
                 if (!pid) { return null; }
