@@ -16,7 +16,7 @@ jobs:
         node-version: 16
         cache: 'npm'
     - run: npm install
-    - run: npm install -g vsce
+    - run: npm install -g @vscode/vsce
     - run: vsce package --out ios-debug.vsix
     - uses: actions/upload-artifact@v3
       with:
