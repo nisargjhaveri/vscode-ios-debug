@@ -1,19 +1,27 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+.github/**
 
+# Only bundle main.js
+out/**
+!out/main.js
+
+# Don't bundle dev only files
 src/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
+PUBLISHING.md
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
 
-# Don't bundle extra build files from ios-deploy
-node_modules/ios-deploy/_Frameworks/**
-node_modules/ios-deploy/build/**
+# Don't bundle node_modules
+node_modules/**
+
+# Bundle neccessary files from ios-deploy
+!node_modules/ios-deploy/package.json
 !node_modules/ios-deploy/build/Release/ios-deploy
 
 # Don't bundle examples
