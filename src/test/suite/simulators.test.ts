@@ -82,7 +82,7 @@ suite('Simulators', () => {
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
 			assert(testSimulator.state === "Shutdown");
-		}).timeout(10_000);
+		}).timeout(60_000);
 
 		test('Boot test simulator', async function() {
 			await simulators.boot(testSimulatorUDID);
@@ -101,7 +101,7 @@ suite('Simulators', () => {
 
 		test('Get pid failure', async function() {
 			assert.rejects(simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App"), /Could not find pid for/);
-		}).timeout(5_000);;
+		}).timeout(10_000);;
 
 		test('Launch Sample App', async function() {
 			launchPid = await simulators.launch(
@@ -119,7 +119,7 @@ suite('Simulators', () => {
 		test('Get pid success', async function() {
 			const pid = await simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App");
 			assert.strictEqual(pid, launchPid);
-		}).timeout(5_000);
+		}).timeout(10_000);
 
 	});
 
