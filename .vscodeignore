@@ -20,10 +20,6 @@ PUBLISHING.md
 # Don't bundle node_modules
 node_modules/**
 
-# Bundle neccessary files from ios-deploy
-!node_modules/ios-deploy/package.json
-!node_modules/ios-deploy/build/Release/ios-deploy
-
 # Don't bundle examples
 examples/**
 

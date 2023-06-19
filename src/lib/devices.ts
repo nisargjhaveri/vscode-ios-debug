@@ -9,9 +9,8 @@ import * as StreamValues from 'stream-json/streamers/StreamValues';
 let IOS_DEPLOY = "ios-deploy";
 
 {
-    const iosDeployPackagePath = require.resolve('ios-deploy/package.json');
-    const binRelativePath = require(iosDeployPackagePath).bin['ios-deploy'] || 'build/Release/ios-deploy';
-    const iosDeployPath = path.join(path.dirname(iosDeployPackagePath), binRelativePath);
+    const binDir = path.resolve(__dirname, "../bin");
+    const iosDeployPath = path.join(binDir, "ios-deploy");
 
     if (fs.existsSync(iosDeployPath))
     {

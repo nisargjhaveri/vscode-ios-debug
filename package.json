@@ -107,7 +107,8 @@
 		"compile-test": "tsc -p ./",
 		"build-example": "cd 'examples/Sample App/'; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphoneos; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphonesimulator",
 		"pretest": "npm run compile-test && npm run lint && npm run build-example",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"postinstall": "mkdir bin && cp node_modules/ios-deploy/build/Release/ios-deploy bin/ios-deploy"
 	},
 	"extensionDependencies": [
 		"vadimcn.vscode-lldb"
