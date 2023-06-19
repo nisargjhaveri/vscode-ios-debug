@@ -9,7 +9,8 @@ import * as StreamValues from 'stream-json/streamers/StreamValues';
 let IOS_DEPLOY = "ios-deploy";
 
 {
-    const binDir = path.resolve(__dirname, "../bin");
+    let binDir = path.resolve(__dirname, "../bin");
+    binDir = fs.existsSync(binDir) ? binDir : path.resolve(__dirname, "../../bin");
     const iosDeployPath = path.join(binDir, "ios-deploy");
 
     if (fs.existsSync(iosDeployPath))
