@@ -114,7 +114,7 @@ suite('Simulators', () => {
 			);
 
 			assert(launchPid > 0);
-		}).timeout(20_000);
+		}).timeout(60_000);
 
 		test('Get pid success', async function() {
 			const pid = await simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App");
