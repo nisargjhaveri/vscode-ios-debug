@@ -8,9 +8,7 @@ on:
 
 jobs:
   build:
-
     runs-on: macos-12
-
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -23,3 +21,15 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         path: ios-debug.vsix
+
+  test:
+    runs-on: macos-12
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+    - run: npm install
+    - run: npm run pretest
+    - run: npm test --ignore-scripts

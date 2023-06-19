@@ -165,7 +165,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
     // simctl doesn't print the pid until the process terminates (output is buffered), so instead
     // get the pid once the app is launched.
     let start = new Date().getTime();
-    while (new Date().getTime() - start < 10_000) {
+    while (new Date().getTime() - start < 30_000) {
         try {
             let pid = await getPidFor(udid, bundleId);
             logger.log(`Launched in ${new Date().getTime() - time} ms`);
