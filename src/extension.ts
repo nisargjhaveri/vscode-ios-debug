@@ -3,10 +3,10 @@ import * as debugConfigProvider from './debugConfigProvider';
 import * as debugLifecycleManager from './debugLifecycleManager';
 import * as targetPicker from './targetPicker';
 import * as targetCommand from './targetCommand';
-import * as logger from './logger';
+import * as logger from './lib/logger';
 
 export function activate(context: vscode.ExtensionContext) {
-	logger.activate();
+	logger.activate(vscode.window.createOutputChannel("iOS Debug"));
 	logger.log('Activating extension "ios-debug"');
 
 	targetPicker.activate(context);

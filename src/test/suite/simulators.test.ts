@@ -2,9 +2,9 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { suiteSetup, suiteTeardown } from 'mocha';
 
-import * as simulators from '../../simulators';
-import { _execFile } from '../../utils';
-import { Simulator } from '../../commonTypes';
+import * as simulators from '../../lib/simulators';
+import { _execFile } from '../../lib/utils';
+import { Simulator } from '../../lib/commonTypes';
 
 suite('Simulators', () => {
 	const testSimulatorName = 'ios-debug-test-simulator';

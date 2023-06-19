@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as logger from './logger';
-import { Target, TargetType } from './commonTypes';
+import * as logger from './lib/logger';
+import { Target, TargetType } from './lib/commonTypes';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
 import * as simulatorFocus from './simulatorFocus';

@@ -1,6 +1,8 @@
-import * as vscode from 'vscode';
+export type Channel = {
+    appendLine(message?: any, ...optionalParams: any[]): void;
+};
 
-let channel = {
+let channel: Channel = {
     appendLine: console.log
 };
 
@@ -33,9 +35,9 @@ function formatMessage(severity: "ERROR"|"WARN"|"INFO", messages: any[])
     return `[${getFormattedTime()}] [${severity}] ${message}`;
 }
 
-export function activate()
+export function activate(c: Channel)
 {
-    channel = vscode.window.createOutputChannel("iOS Debug");
+    channel = c;
 }
 
 export function error(...args: any[])

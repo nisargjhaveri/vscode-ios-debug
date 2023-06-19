@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import * as logger from './logger';
-import { Device, Simulator, Target } from './commonTypes';
-import { listTargets, isValid as isValidTarget, getTarget } from './targets';
+import * as logger from './lib/logger';
+import { Device, Simulator, Target } from './lib/commonTypes';
+import { listTargets, isValid as isValidTarget, getTarget } from './lib/targets';
 
 const SELECTED_TARGET_KEY = "selected_target";
 

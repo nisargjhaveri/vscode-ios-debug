@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import * as logger from './logger';
-import * as simulator from './simulators';
-import * as device from './devices';
+import * as logger from './lib/logger';
+import * as simulator from './lib/simulators';
+import * as device from './lib/devices';
 import { targetUDID } from './targetPicker';
-import { ChildProcess, PromiseWithChild } from 'child_process';
+import type { ChildProcess } from 'child_process';
 
 let context: vscode.ExtensionContext;
 let debugserverProcesses: {[port: number]: ChildProcess} = {};

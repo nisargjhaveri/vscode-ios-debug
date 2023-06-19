@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as logger from './logger';
+import * as logger from './lib/logger';
 import * as targetCommand from './targetCommand';
 
 function onDidStartDebugSession(debugSession: vscode.DebugSession) {

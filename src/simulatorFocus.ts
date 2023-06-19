@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { _execFile } from './utils';
-import * as logger from './logger';
+import { _execFile } from './lib/utils';
+import * as logger from './lib/logger';
 
 
 export async function tryEnsurePermissions(): Promise<boolean> {

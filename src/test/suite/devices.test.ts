@@ -2,9 +2,9 @@ import * as assert from 'assert';
 import * as path from 'path';
 import { suiteSetup, suiteTeardown } from 'mocha';
 
-import * as devices from '../../devices';
-import { _execFile } from '../../utils';
-import { Device } from '../../commonTypes';
+import * as devices from '../../lib/devices';
+import { _execFile } from '../../lib/utils';
+import { Device } from '../../lib/commonTypes';
 
 const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 
