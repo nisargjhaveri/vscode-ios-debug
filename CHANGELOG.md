@@ -2,6 +2,11 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.3.3
+### Changed
+- Fix attach behavior on device. Properly attach to running app when targeting a device.
+- A bunch of underlying changes and refactoring.
+
 ## v0.3.2
 ### Changed
 - Minor improvements in logging and error handling while launching Simulator
