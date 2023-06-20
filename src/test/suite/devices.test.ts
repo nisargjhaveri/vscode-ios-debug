@@ -35,34 +35,50 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 	suite('Device actions', () => {
 		let launchPid: number;
 		let installAppBundlePath: string;
+		let testDeviceTarget: Device;
+
+		suiteSetup(async function() {
+			const listDevices = await devices.listDevices();
+			testDeviceTarget = listDevices.filter(t => t.udid === testDeviceUDID)[0];
+		});
 
 		test('Install Sample App', async function() {
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphoneos/Sample App.app");
-			installAppBundlePath = await devices.install(testDeviceUDID, appPath, {}, (e) => {
+			installAppBundlePath = await devices.install(testDeviceTarget, appPath, {}, (e) => {
 				// Do nothing for now
 			});
 		}).timeout(20_000);
 
 		test('Install app wrong path', async function() {
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphoneos/Wrong App.app");
-			assert.rejects(devices.install(testDeviceUDID, appPath, {}, (e) => {
+			assert.rejects(devices.install(testDeviceTarget, appPath, {}, (e) => {
 				// Do nothing for now
 			}), "Could not install and get path");
 		});
 
 		test('Install app wrong device', async function() {
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphoneos/Sample App.app");
-			assert.rejects(devices.install("DEVICE_NOT_EXISTS", appPath, {}, (e) => {
+			const target: Device = {
+				type: "Device",
+				udid: "DEVICE_NOT_EXISTS",
+				name: "Some name",
+				modelName: "",
+				sdk: "",
+				version: "",
+				buildVersion: "",
+				runtime: ""
+			};
+			assert.rejects(devices.install(target, appPath, {}, (e) => {
 				// Do nothing for now
 			}), "Could not install and get path");
 		}).timeout(5_000);
 
 		test('Get pid failure', async function() {
-			assert.rejects(devices.getPidFor(testDeviceUDID, "com.ios-debug.Sample-App"), /Could not find pid for/);
+			assert.rejects(devices.getPidFor(testDeviceTarget, "com.ios-debug.Sample-App"), /Could not find pid for/);
 		}).timeout(5_000);;
 
 		test('Get app path on device', async function() {
-			let appBundlePath = await devices.getAppDevicePath(testDeviceUDID, "com.ios-debug.Sample-App");
+			let appBundlePath = await devices.getAppDevicePath(testDeviceTarget, "com.ios-debug.Sample-App");
 
 			assert.strictEqual(appBundlePath, installAppBundlePath);
 		}).timeout(5_000);;
@@ -70,7 +86,7 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		test('Launch Sample App', async function() {
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphoneos/Sample App.app");
 			launchPid = await devices.launch(
-				testDeviceUDID,
+				testDeviceTarget,
 				appPath
 			);
 
@@ -78,12 +94,12 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		}).timeout(10_000);
 
 		test('Get pid success', async function() {
-			const pid = await devices.getPidFor(testDeviceUDID, "com.ios-debug.Sample-App");
+			const pid = await devices.getPidFor(testDeviceTarget, "com.ios-debug.Sample-App");
 			assert.strictEqual(pid, launchPid);
 		}).timeout(5_000);
 
 		test('Start debugserver', async function() {
-			const {port, exec} = await devices.debugserver(testDeviceUDID, {}, (e) => {
+			const {port, exec} = await devices.debugserver(testDeviceTarget, {}, (e) => {
 				// Do nothing for now
 			});
 			assert(port > 0);

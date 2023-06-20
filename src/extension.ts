@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	debugLifecycleManager.activate(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.pickTarget', targetPicker.pickTarget));
-	context.subscriptions.push(vscode.commands.registerCommand('ios-debug._getOrPickTarget', targetPicker._getOrPickTarget));
+	context.subscriptions.push(vscode.commands.registerCommand('ios-debug._getOrPickTarget', targetPicker.getOrPickTarget));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.targetUDID', targetPicker.targetUDID));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.targetType', targetPicker.targetType));
 	context.subscriptions.push(vscode.commands.registerCommand('ios-debug.targetName', targetPicker.targetName));

@@ -94,9 +94,9 @@ export async function isValid(simulator: Simulator): Promise<boolean>
         });
 }
 
-export async function boot(udid: string): Promise<void>
+export async function boot(target: Simulator): Promise<void>
 {
-    logger.log(`Booting simulator (udid: ${udid}) if required`);
+    logger.log(`Booting simulator (udid: ${target.udid}) if required`);
     let time = new Date().getTime();
 
     try {
@@ -104,34 +104,34 @@ export async function boot(udid: string): Promise<void>
     } catch (e: any) {
         logger.log(`Unable to open Simulator app (code: ${e.code}, stderr: "${e.stderr})"`);
     }
-    await _execFile('xcrun', ['simctl', 'bootstatus', udid, '-b']);
+    await _execFile('xcrun', ['simctl', 'bootstatus', target.udid, '-b']);
 
     logger.log(`Booted in ${new Date().getTime() - time} ms`);
 }
 
-export async function shutdown(udid: string): Promise<void>
+export async function shutdown(target: Simulator): Promise<void>
 {
-    logger.log(`Shutting down simulator (udid: ${udid}) if required`);
+    logger.log(`Shutting down simulator (udid: ${target.udid}) if required`);
     let time = new Date().getTime();
 
-    await _execFile('xcrun', ['simctl', 'shutdown', udid]);
+    await _execFile('xcrun', ['simctl', 'shutdown', target.udid]);
 
     logger.log(`Shut down in ${new Date().getTime() - time} ms`);
 }
 
-export async function install(udid: string, path: string): Promise<void>
+export async function install(target: Simulator, path: string): Promise<void>
 {
-    logger.log(`Installing app (path: ${path}) to simulator (udid: ${udid})`);
+    logger.log(`Installing app (path: ${path}) to simulator (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    await _execFile('xcrun', ['simctl', 'install', udid, path]);
+    await _execFile('xcrun', ['simctl', 'install', target.udid, path]);
 
     logger.log(`Installed in ${new Date().getTime() - time} ms`);
 }
 
-export async function launch(udid: string, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<number>
+export async function launch(target: Simulator, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<number>
 {
-    logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${udid})`);
+    logger.log(`Launching app (id: ${bundleId}) on simulator (udid: ${target.udid})`);
     let time = new Date().getTime();
 
     args = args ?? [];
@@ -151,7 +151,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
             ...(waitForDebugger ? ['--wait-for-debugger'] : []),
             '--terminate-running-process',
             '--console-pty',
-            udid,
+            target.udid,
             bundleId,
             ...args
         ],
@@ -167,7 +167,7 @@ export async function launch(udid: string, bundleId: string, args: string[], env
     let start = new Date().getTime();
     while (new Date().getTime() - start < 30_000) {
         try {
-            let pid = await getPidFor(udid, bundleId);
+            let pid = await getPidFor(target, bundleId);
             logger.log(`Launched in ${new Date().getTime() - time} ms`);
             return pid;
         } catch (error) {
@@ -180,13 +180,13 @@ export async function launch(udid: string, bundleId: string, args: string[], env
     throw new Error("Could not launch and get pid");
 }
 
-export async function getPidFor(udid: string, appBundleId: string): Promise<number>
+export async function getPidFor(target: Simulator, appBundleId: string): Promise<number>
 {
-    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on simulator (udid: ${udid})`);
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on simulator (udid: ${target.udid})`);
     let time = new Date().getTime();
 
     // simctl spawn booted launchctl list
-    let {stdout, stderr} = await _execFile('xcrun', ['simctl', 'spawn', udid, 'launchctl', 'list']);
+    let {stdout, stderr} = await _execFile('xcrun', ['simctl', 'spawn', target.udid, 'launchctl', 'list']);
 
     let match = stdout.match(new RegExp(`^(\\d+).+?UIKitApplication:${appBundleId}.*$`, 'm'));
     if (!match) {

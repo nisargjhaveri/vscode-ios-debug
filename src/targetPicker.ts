@@ -89,7 +89,7 @@ export async function pickTarget()
 	return target;
 }
 
-export async function _getOrPickTarget()
+export async function getOrPickTarget()
 {
 	let target: Target|undefined = _getTarget();
 	let isValid = target && await isValidTarget(target);
@@ -119,28 +119,28 @@ export async function getTargetFromUDID(udid: string)
 
 export async function targetUDID()
 {
-	let target: Target|undefined = await _getOrPickTarget();
+	let target: Target|undefined = await getOrPickTarget();
 
 	return target?.udid;
 }
 
 export async function targetType ()
 {
-	let target: Target|undefined = await _getOrPickTarget();
+	let target: Target|undefined = await getOrPickTarget();
 
 	return target?.type;
 }
 
 export async function targetName()
 {
-	let target: Target|undefined = await _getOrPickTarget();
+	let target: Target|undefined = await getOrPickTarget();
 
 	return target?.name;
 }
 
 export async function targetSdk()
 {
-	let target: Target|undefined = await _getOrPickTarget();
+	let target: Target|undefined = await getOrPickTarget();
 
 	return target?.sdk;
 }

@@ -102,14 +102,14 @@ export async function isValid(target: Device): Promise<boolean>
     });
 }
 
-export async function install(udid: string, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
+export async function install(target: Device, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
 {
-    logger.log(`Installing app (path: ${path}) to device (udid: ${udid})`);
+    logger.log(`Installing app (path: ${path}) to device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
 
     cancellationToken.cancel = () => p.child.kill();
 
@@ -138,12 +138,12 @@ export async function install(udid: string, path: string, cancellationToken: {ca
     return installationPath;
 }
 
-export async function launch(udid: string, path: string): Promise<number>
+export async function launch(target: Device, path: string): Promise<number>
 {
-    logger.log(`Launching app (path: ${path}) on device (udid: ${udid})`);
+    logger.log(`Launching app (path: ${path}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let {stdout, stderr} = await _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall']);
+    let {stdout, stderr} = await _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall']);
 
     let match = stdout.match(new RegExp(`^Process (\\d+) detached$`, 'm'));
     if (!match) {
@@ -156,12 +156,12 @@ export async function launch(udid: string, path: string): Promise<number>
     return pid;
 }
 
-export async function debugserver(udid: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
+export async function debugserver(target: Device, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
 {
-    logger.log(`Starting debugserver for device (udid: ${udid})`);
+    logger.log(`Starting debugserver for device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--nolldb', '--faster-path-search', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--nolldb', '--faster-path-search', '--json']);
 
     cancellationToken.cancel = () => p.child.kill();
 
@@ -195,11 +195,11 @@ export async function debugserver(udid: string, cancellationToken: {cancel?(): v
     };
 }
 
-export async function getAppDevicePath(udid: string, appBundleId: string) {
-    logger.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
+export async function getAppDevicePath(target: Device, appBundleId: string) {
+    logger.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--list_bundle_id', '--json', '-k', 'Path']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--list_bundle_id', '--json', '-k', 'Path']);
 
     let appDevicePath: string|undefined = await new Promise((resolve, reject) => {
         p.catch(reject);
@@ -232,12 +232,12 @@ export async function getAppDevicePath(udid: string, appBundleId: string) {
     return appDevicePath;
 }
 
-export async function getPidFor(udid: string, appBundleId: string): Promise<number>
+export async function getPidFor(target: Device, appBundleId: string): Promise<number>
 {
-    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${udid})`);
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', udid, '--faster-path-search', '--timeout', '3', '--get_pid', '--bundle_id', appBundleId, '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--get_pid', '--bundle_id', appBundleId, '--json']);
 
     let pid: number = await new Promise((resolve, reject) => {
         p.catch(reject);

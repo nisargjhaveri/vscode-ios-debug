@@ -58,18 +58,24 @@ suite('Simulators', () => {
 
 	suite('Simulator actions', () => {
 		let launchPid: number;
+		let testSimulatorTarget: Simulator;
+
+		suiteSetup(async function() {
+			const listSimulators = await simulators.listSimulators();
+			testSimulatorTarget = listSimulators.filter(t => t.udid === testSimulatorUDID)[0];
+		});
 
 		suiteTeardown(async function() {
 			this.timeout(10_000);
 			try {
-				await simulators.shutdown(testSimulatorUDID);
+				await simulators.shutdown(testSimulatorTarget);
 			} catch {
 				// Ignore
 			}
 		});
 
 		test('First-boot test simulator', async function() {
-			await simulators.boot(testSimulatorUDID);
+			await simulators.boot(testSimulatorTarget);
 	
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
@@ -77,7 +83,7 @@ suite('Simulators', () => {
 		}).timeout(240_000);
 
 		test('Shutdown test simulator', async function() {
-			await simulators.shutdown(testSimulatorUDID);
+			await simulators.shutdown(testSimulatorTarget);
 
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
@@ -85,7 +91,7 @@ suite('Simulators', () => {
 		}).timeout(60_000);
 
 		test('Boot test simulator', async function() {
-			await simulators.boot(testSimulatorUDID);
+			await simulators.boot(testSimulatorTarget);
 	
 			const listSimulators = await simulators.listSimulators();
 			const testSimulator = listSimulators.filter((s) => s.udid === testSimulatorUDID)[0];
@@ -93,19 +99,19 @@ suite('Simulators', () => {
 		}).timeout(90_000);
 
 		test('Install Sample App', async function() {
-			await simulators.boot(testSimulatorUDID);
+			await simulators.boot(testSimulatorTarget);
 	
 			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphonesimulator/Sample App.app");
-			await simulators.install(testSimulatorUDID, appPath);
+			await simulators.install(testSimulatorTarget, appPath);
 		}).timeout(90_000);
 
 		test('Get pid failure', async function() {
-			assert.rejects(simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App"), /Could not find pid for/);
+			assert.rejects(simulators.getPidFor(testSimulatorTarget, "com.ios-debug.Sample-App"), /Could not find pid for/);
 		}).timeout(10_000);;
 
 		test('Launch Sample App', async function() {
 			launchPid = await simulators.launch(
-				testSimulatorUDID,
+				testSimulatorTarget,
 				"com.ios-debug.Sample-App",
 				[],
 				{},
@@ -117,7 +123,7 @@ suite('Simulators', () => {
 		}).timeout(60_000);
 
 		test('Get pid success', async function() {
-			const pid = await simulators.getPidFor(testSimulatorUDID, "com.ios-debug.Sample-App");
+			const pid = await simulators.getPidFor(testSimulatorTarget, "com.ios-debug.Sample-App");
 			assert.strictEqual(pid, launchPid);
 		}).timeout(10_000);
 

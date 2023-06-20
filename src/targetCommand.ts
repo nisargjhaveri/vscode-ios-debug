@@ -2,26 +2,27 @@ import * as vscode from 'vscode';
 import * as logger from './lib/logger';
 import * as simulator from './lib/simulators';
 import * as device from './lib/devices';
-import { targetUDID } from './targetPicker';
+import { Device, Simulator, Target } from './lib/commonTypes';
+import { getOrPickTarget } from './targetPicker';
 import type { ChildProcess } from 'child_process';
 
 let context: vscode.ExtensionContext;
 let debugserverProcesses: {[port: number]: ChildProcess} = {};
 
 
-async function resolveArgs(args: any)
+async function resolveArgs<T extends {target?: Target}>(args: T): Promise<T>
 {
-	if (!args.udid)
+	if (!args.target)
 	{
-		args.udid = await targetUDID();
+		args.target = await getOrPickTarget();
 	}
 
 	return args;
 }
 
-export async function simulatorInstall(args: {udid: string, path: string})
+export async function simulatorInstall(args: {target: Simulator, path: string})
 {
-	let {udid, path} = await resolveArgs(args);
+	let {target, path} = await resolveArgs(args);
 
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
@@ -30,9 +31,9 @@ export async function simulatorInstall(args: {udid: string, path: string})
 	}, (progress, token) => {
 		return Promise.resolve()
 			.then(() => progress.report({message: "Booting"}))
-			.then(() => simulator.boot(udid))
+			.then(() => simulator.boot(target))
 			.then(() => progress.report({message: "Installing app"}))
-			.then(() => simulator.install(udid, path))
+			.then(() => simulator.install(target, path))
 			.catch((e) => {
 				logger.error(e);
 				vscode.window.showErrorMessage("Failed to install app on simulator");
@@ -40,9 +41,9 @@ export async function simulatorInstall(args: {udid: string, path: string})
 	});
 }
 
-export async function simulatorLaunch(a: {udid: string, bundleId: string, args?: string[], env?: {[key: string]: string}, waitForDebugger: boolean})
+export async function simulatorLaunch(a: {target: Simulator, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean})
 {
-	let {udid, bundleId, args, env, waitForDebugger} = await resolveArgs(a);
+	let {target, bundleId, args, env, stdio: {stdout, stderr}, waitForDebugger} = await resolveArgs(a);
 
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
@@ -51,9 +52,9 @@ export async function simulatorLaunch(a: {udid: string, bundleId: string, args?:
 	}, (progress, token) => {
 		return Promise.resolve()
 			.then(() => progress.report({message: "Booting"}))
-			.then(() => simulator.boot(udid))
+			.then(() => simulator.boot(target))
 			.then(() => progress.report({message: "Lauching app"}))
-			.then(() => simulator.launch(udid, bundleId, args, env, waitForDebugger))
+			.then(() => simulator.launch(target, bundleId, args, env, {stdout, stderr}, waitForDebugger))
 			.then((pid) => pid.toString())
 			.catch((e) => {
 				logger.error(e);
@@ -62,9 +63,9 @@ export async function simulatorLaunch(a: {udid: string, bundleId: string, args?:
 	});
 }
 
-export async function simulatorInstallAndLaunch(a: {udid: string, path: string, bundleId: string, args?: string[], env?: {[key: string]: string}, stdio?: {stdout?: string, stderr?: string}, waitForDebugger: boolean})
+export async function simulatorInstallAndLaunch(a: {target: Simulator, path: string, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean})
 {
-	let {udid, path, bundleId, args, env, stdio: {stdout, stderr}, waitForDebugger} = await resolveArgs(a);
+	let {target, path, bundleId, args, env, stdio: {stdout, stderr}, waitForDebugger} = await resolveArgs(a);
 
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
@@ -73,11 +74,11 @@ export async function simulatorInstallAndLaunch(a: {udid: string, path: string, 
 	}, (progress, token) => {
 		return Promise.resolve()
 			.then(() => progress.report({message: "Booting"}))
-			.then(() => simulator.boot(udid))
+			.then(() => simulator.boot(target))
 			.then(() => progress.report({message: "Installing app"}))
-			.then(() => simulator.install(udid, path))
+			.then(() => simulator.install(target, path))
 			.then(() => progress.report({message: "Lauching app"}))
-			.then(() => simulator.launch(udid, bundleId, args, env, {stdout, stderr}, waitForDebugger))
+			.then(() => simulator.launch(target, bundleId, args, env, {stdout, stderr}, waitForDebugger))
 			.then((pid) => pid.toString())
 			.catch((e) => {
 				logger.error(e);
@@ -86,32 +87,32 @@ export async function simulatorInstallAndLaunch(a: {udid: string, path: string, 
 	});
 }
 
-export async function simulatorGetPidFor(args: {udid: string, bundleId: string})
+export async function simulatorGetPidFor(args: {target: Simulator, bundleId: string})
 {
-	let {udid, bundleId} = await resolveArgs(args);
+	let {target, bundleId} = await resolveArgs(args);
 
-	return simulator.getPidFor(udid, bundleId)
+	return simulator.getPidFor(target, bundleId)
 		.then((pid) => pid.toString());
 }
 
-export async function deviceGetPidFor(args: {udid: string, bundleId: string})
+export async function deviceGetPidFor(args: {target: Device, bundleId: string})
 {
-	let {udid, bundleId} = await resolveArgs(args);
+	let {target, bundleId} = await resolveArgs(args);
 
-	return device.getPidFor(udid, bundleId)
+	return device.getPidFor(target, bundleId)
 		.then((pid) => pid.toString());
 }
 
-export async function deviceAppPath(args: {udid: string, bundleId: string})
+export async function deviceAppPath(args: {target: Device, bundleId: string})
 {
-	let {udid, bundleId} = await resolveArgs(args);
+	let {target, bundleId} = await resolveArgs(args);
 
-	return device.getAppDevicePath(udid, bundleId);
+	return device.getAppDevicePath(target, bundleId);
 }
 
-export async function deviceInstall(args: {udid: string, path: string})
+export async function deviceInstall(args: {target: Device, path: string})
 {
-	let {udid, path} = await resolveArgs(args);
+	let {target, path} = await resolveArgs(args);
 
 	return vscode.window.withProgress({
 			"location": vscode.ProgressLocation.Notification,
@@ -126,7 +127,7 @@ export async function deviceInstall(args: {udid: string, path: string})
 			token.onCancellationRequested((e) => { cancellationToken.cancel(); });
 
 			return Promise.resolve()
-				.then(() => device.install(udid, path, cancellationToken, (event) => {
+				.then(() => device.install(target, path, cancellationToken, (event) => {
 					logger.log(event);
 
 					let message;
@@ -151,9 +152,9 @@ export async function deviceInstall(args: {udid: string, path: string})
 		});
 }
 
-export async function deviceDebugserver(args: {udid: string})
+export async function deviceDebugserver(args: {target: Device})
 {
-	let {udid} = await resolveArgs(args);
+	let {target} = await resolveArgs(args);
 
 	return vscode.window.withProgress({
 		"location": vscode.ProgressLocation.Notification,
@@ -165,7 +166,7 @@ export async function deviceDebugserver(args: {udid: string})
 		token.onCancellationRequested((e) => cancellationToken.cancel());
 
 		return Promise.resolve()
-			.then(() => device.debugserver(udid, cancellationToken))
+			.then(() => device.debugserver(target, cancellationToken))
 			.then(({port, exec}) => {
 
 				debugserverProcesses[port] = exec.child;

@@ -2,9 +2,9 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as logger from './lib/logger';
-import { Target, TargetType } from './lib/commonTypes';
+import { Device, Simulator, Target, TargetType } from './lib/commonTypes';
 import * as targetCommand from './targetCommand';
-import { getTargetFromUDID, pickTarget, _getOrPickTarget } from './targetPicker';
+import { getTargetFromUDID, pickTarget, getOrPickTarget } from './targetPicker';
 import * as simulatorFocus from './simulatorFocus';
 
 let context: vscode.ExtensionContext;
@@ -39,7 +39,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             return await pickTarget();
         }
         else if (iosTarget === "last-selected") {
-            return await _getOrPickTarget();
+            return await getOrPickTarget();
         }
         else if (typeof iosTarget === "string") {
             return await getTargetFromUDID(iosTarget);
@@ -110,7 +110,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                 let stderr = `${outputBasename}-stderr`;
 
                 pid = await targetCommand.simulatorInstallAndLaunch({
-                    udid: target.udid,
+                    target: target as Simulator,
                     path: dbgConfig.program,
                     bundleId: this.ensureBundleId(dbgConfig),
                     env: dbgConfig.env,
@@ -125,7 +125,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             else
             {
                 pid = await targetCommand.simulatorGetPidFor({
-                    udid: target.udid,
+                    target: target as Simulator,
                     bundleId: this.ensureBundleId(dbgConfig),
                 });
             }
@@ -148,19 +148,19 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             if (dbgConfig.iosRequest === "launch")
             {
                 platformPath = await targetCommand.deviceInstall({
-                    udid: target.udid,
+                    target: target as Device,
                     path: dbgConfig.program,
                 });
             }
             else
             {
                 platformPath = await targetCommand.deviceAppPath({
-                    udid: target.udid,
+                    target: target as Device,
                     bundleId: this.ensureBundleId(dbgConfig),
                 });
 
                 let pid = await targetCommand.deviceGetPidFor({
-                    udid: target.udid,
+                    target: target as Device,
                     bundleId: this.ensureBundleId(dbgConfig),
                 });
 
@@ -172,7 +172,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             if (!platformPath) { return null; }
 
             let debugserverPort = await targetCommand.deviceDebugserver({
-                udid: target.udid,
+                target: target as Device,
             });
             if (!debugserverPort) { return null;}
 
