@@ -33,7 +33,7 @@
 					"launch": {
 						"properties": {
 							"iosTarget": {
-								"description": "Target ios. Specify target UDID or `true` to select target.",
+								"description": "Target ios. Specify target UDID or 'select' to select target.",
 								"anyOf": [
 									{
 										"type": "string"
@@ -60,7 +60,7 @@
 					"attach": {
 						"properties": {
 							"iosTarget": {
-								"description": "Target ios. Specify target UDID or `true` to select target.",
+								"description": "Target ios. Specify target UDID or 'select' to select target.",
 								"anyOf": [
 									{
 										"type": "string"
