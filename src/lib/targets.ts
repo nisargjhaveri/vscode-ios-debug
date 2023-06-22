@@ -12,9 +12,9 @@ let lastIsValidCheck: {
 
 export async function listTargets(): Promise<Target[]>
 {
-    let [dev, sim] = await Promise.all([devices.listDevices(), simulators.listSimulators()]);
+    let targets = await Promise.all([devices.listDevices("companion"), devices.listDevices("local"), simulators.listSimulators()]);
     
-    return (dev as Target[]).concat(sim);
+    return targets.flat();
 }
 
 export async function getTarget(udid: string): Promise<Target|undefined>

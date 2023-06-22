@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as logger from './lib/logger';
 import { Device, Simulator, Target } from './lib/commonTypes';
+import { setCompanionUsbmuxdSocketPath } from './lib/devices';
 import { listTargets, isValid as isValidTarget, getTarget } from './lib/targets';
+import { UsbmuxdReverseProxyServer } from './lib/remoteUsbmuxd';
 
 const SELECTED_TARGET_KEY = "selected_target";
 
@@ -43,9 +45,80 @@ function _getTarget(): Target|undefined
 	return context.workspaceState.get(SELECTED_TARGET_KEY);
 }
 
+// Remote devices
+async function isCompanionAvailable() {
+	let companionFound = false;
+	try {
+		await vscode.commands.executeCommand("ios-debug-companion.activate");
+		companionFound = true;
+	}
+	catch (e) {
+		companionFound = false;
+	}
+
+	return companionFound;
+}
+
+let usbmuxdReverseProxyServer: UsbmuxdReverseProxyServer;
+async function ensureCompanionConnected() {
+	// Do nothing if not remote
+	if (!vscode.env.remoteName) {
+		return;
+	}
+
+	// Do nothing if we're not running on the remote end
+	if (!context || context.extension.extensionKind !== vscode.ExtensionKind.Workspace) {
+		return;
+	}
+
+	// If we're already connected, nothing more to do
+	if (usbmuxdReverseProxyServer
+		&& usbmuxdReverseProxyServer.proxyServerAddress
+		&& usbmuxdReverseProxyServer.usbmuxdSocketPath) {
+		return;
+	}
+
+	try {
+		if (!usbmuxdReverseProxyServer) {
+			// Check if companion app is available
+			if (!await isCompanionAvailable()) {
+				// Prompt to install?
+				return;
+			}
+
+			// Can we start the reverse proxy?
+			if (!await vscode.commands.executeCommand<boolean>("ios-debug-companion.canStartUsbmuxdReverseProxy")) {
+				return;
+			}
+
+			// Start the reverse proxy server
+			usbmuxdReverseProxyServer = new UsbmuxdReverseProxyServer();
+
+			await usbmuxdReverseProxyServer.start();
+
+			usbmuxdReverseProxyServer.on("path-updated", (usbmuxdSocketPath) => {
+				setCompanionUsbmuxdSocketPath(usbmuxdSocketPath);
+			});
+		}
+
+		// Ask companion to connect if server is started
+		if (usbmuxdReverseProxyServer && usbmuxdReverseProxyServer.proxyServerAddress && !usbmuxdReverseProxyServer.usbmuxdSocketPath) {
+			let httpUrl = vscode.Uri.parse(usbmuxdReverseProxyServer.proxyServerAddress.replace(/^ws/, "http"));
+			let externalHttpUrl = await vscode.env.asExternalUri(httpUrl);
+			let wsUrl = externalHttpUrl.toString().replace(/^http/, "ws");
+
+			vscode.commands.executeCommand("ios-debug-companion.startUsbmuxdReverseProxy", wsUrl);
+			await usbmuxdReverseProxyServer.ensureUsbmuxdSocketPath();
+		}
+	} catch(e) {
+		logger.log("Error connecting to companion:", e);
+	}
+}
+
 // Command callbacks
 export async function pickTarget()
 {
+	await ensureCompanionConnected();
 	let quickPickItems = listTargets().then((targets) => {
 		return targets
 			.sort((a, b) => {
@@ -92,6 +165,7 @@ export async function pickTarget()
 
 export async function getOrPickTarget()
 {
+	await ensureCompanionConnected();
 	let target: Target|undefined = _getTarget();
 	let isValid = target && await isValidTarget(target);
 
@@ -106,6 +180,7 @@ export async function getOrPickTarget()
 
 export async function getTargetFromUDID(udid: string)
 {
+	await ensureCompanionConnected();
 	let target: Target|undefined = await getTarget(udid);
 
 	if (target && target.udid)
