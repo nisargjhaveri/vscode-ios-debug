@@ -1,8 +1,8 @@
-import * as crypto from 'crypto';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as logger from './lib/logger';
 import { Device, Simulator, Target, TargetType } from './lib/commonTypes';
+import { randomString } from './lib/utils';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, getOrPickTarget } from './targetPicker';
 import * as simulatorFocus from './simulatorFocus';
@@ -16,20 +16,8 @@ const lldbPlatform: {[T in TargetType]: string} = {
     "Device": "remote-ios"
 };
 
-function randomString() {
-    let random;
-
-    try {
-        random = crypto.randomBytes(16);
-    } catch (e) {
-        random = crypto.pseudoRandomBytes(16);
-    }
-
-    return random.toString('hex');
-}
-
 function getOutputBasename() {
-    return path.join('/tmp', `ios-${randomString()}`);
+    return path.join('/tmp', `ios-${randomString(16)}`);
 }
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider
