@@ -8,6 +8,7 @@ out/**
 
 # Don't bundle dev only files
 src/**
+usbmuxd/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md

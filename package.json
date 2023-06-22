@@ -108,7 +108,9 @@
 		"build-example": "cd 'examples/Sample App/'; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphoneos; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphonesimulator",
 		"pretest": "npm run compile-test && npm run lint && npm run build-example",
 		"test": "node ./out/test/runTest.js",
-		"postinstall": "mkdir bin && cp node_modules/ios-deploy/build/Release/ios-deploy bin/ios-deploy"
+		"install-ios-deploy": "cp node_modules/ios-deploy/build/Release/ios-deploy bin/ios-deploy",
+		"install-override-usbmuxd": "cd usbmuxd && make install",
+		"postinstall": "mkdir -p bin && npm run install-ios-deploy && npm run install-override-usbmuxd"
 	},
 	"extensionDependencies": [
 		"vadimcn.vscode-lldb"
