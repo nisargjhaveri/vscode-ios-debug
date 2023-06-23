@@ -39,7 +39,8 @@ suite('Targets', () => {
 			sdk: "",
 			version: "",
 			buildVersion: "",
-			runtime: ""
+			runtime: "",
+			source: "local",
 		};
 		assert.strictEqual(await targets.isValid(target), false);
 	});

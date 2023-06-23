@@ -12,7 +12,7 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 	suite('List devices', () => {
 		let listDevices: Device[];
 		suiteSetup(async function() {
-			listDevices = await devices.listDevices();
+			listDevices = await devices.listDevices("local");
 		});
 
 		test('Devices found', async function() {
@@ -38,7 +38,7 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		let testDeviceTarget: Device;
 
 		suiteSetup(async function() {
-			const listDevices = await devices.listDevices();
+			const listDevices = await devices.listDevices("local");
 			testDeviceTarget = listDevices.filter(t => t.udid === testDeviceUDID)[0];
 		});
 
@@ -66,7 +66,8 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 				sdk: "",
 				version: "",
 				buildVersion: "",
-				runtime: ""
+				runtime: "",
+				source: "local",
 			};
 			assert.rejects(devices.install(target, appPath, {}, (e) => {
 				// Do nothing for now
