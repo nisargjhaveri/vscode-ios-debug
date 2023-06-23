@@ -20,12 +20,15 @@ jobs:
     - name: Setup Environment
       run: |
         if [ "$GITHUB_REF_TYPE" = "tag" -a "${GITHUB_REF_NAME::1}" = "v" ]; then
-          VSIX_OUT_NAME="ios-deploy-${GITHUB_REF_NAME:1}.vsix"
+          VSIX_OUT_NAME="$VSIX_BASE_NAME-${GITHUB_REF_NAME:1}.vsix"
         else
-          VSIX_OUT_NAME="ios-deploy.vsix"
+          VSIX_OUT_NAME="$VSIX_BASE_NAME.vsix"
         fi
 
         echo "VSIX_OUT_NAME=$VSIX_OUT_NAME" >> $GITHUB_ENV
+        echo "VSIX_OUT_NAME=$VSIX_OUT_NAME"
+      env:
+        VSIX_BASE_NAME: ios-debug
     - run: npm install
     - run: npm install -g @vscode/vsce
     - run: vsce package --out "$VSIX_OUT_NAME"
