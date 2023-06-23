@@ -74,12 +74,18 @@ async function promptInstallCompanion() {
 	logger.log("Showing prompt to install companion");
 
 	const INSTALL = "Install";
+	const DONT_ASK_AGAIN = "Don't ask again";
 	const choice = await vscode.window.showInformationMessage(
 		"Install [iOS Debug Companion](https://marketplace.visualstudio.com/items?itemName=nisargjhaveri.ios-debug-companion) extension to enable debugging on locally connected devices.",
-		INSTALL
+		INSTALL,
+		DONT_ASK_AGAIN
 	);
 
-	if (choice !== INSTALL) {
+	if (choice === DONT_ASK_AGAIN) {
+		await vscode.workspace.getConfiguration("ios-debug").update('shareLocalDevices', "never", true);
+		return;
+	}
+	else if (choice !== INSTALL) {
 		return;
 	}
 	
@@ -96,7 +102,7 @@ async function promptInstallCompanion() {
 		return;
 	}
 	
-	logger.error("Companion extension installed.");
+	logger.log("Companion extension installed.");
 
 	// Retrigger companion connection. We reached here from that flow in the first place.
 	// User already has an intent to use remote features.
