@@ -19,7 +19,7 @@ jobs:
         cache: 'npm'
     - name: Setup Environment
       run: |
-        if [ "$GITHUB_REF_TYPE" = "tag" -a "${GITHUB_REF_NAME::0}" = "v" ]; then
+        if [ "$GITHUB_REF_TYPE" = "tag" -a "${GITHUB_REF_NAME::1}" = "v" ]; then
           VSIX_OUT_NAME="ios-deploy-${GITHUB_REF_NAME:1}.vsix"
         else
           VSIX_OUT_NAME="ios-deploy.vsix"
