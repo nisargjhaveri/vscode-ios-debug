@@ -80,7 +80,12 @@ async function ensureCompanionConnected() {
 
 	try {
 		if (!usbmuxdReverseProxyServer) {
-			// Check if companion app is available
+			const configShareLocalDevices = vscode.workspace.getConfiguration("ios-debug").get<string>('shareLocalDevices');
+			if (configShareLocalDevices === "never") {
+				return;
+			}
+
+			// Check if companion is available
 			if (!await isCompanionAvailable()) {
 				// Prompt to install?
 				return;
