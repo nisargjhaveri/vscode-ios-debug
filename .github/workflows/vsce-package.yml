@@ -3,6 +3,8 @@ name: Node.js CI
 on:
   push:
     branches: [ main ]
+    tags:
+      - v*
   pull_request:
     branches: [ main ]
 
@@ -15,12 +17,21 @@ jobs:
       with:
         node-version: 18
         cache: 'npm'
+    - name: Setup Environment
+      run: |
+        if [ "$GITHUB_REF_TYPE" = "tag" -a "${GITHUB_REF_NAME::0}" = "v" ]; then
+          VSIX_OUT_NAME="ios-deploy-${GITHUB_REF_NAME:1}.vsix"
+        else
+          VSIX_OUT_NAME="ios-deploy.vsix"
+        fi
+
+        echo "VSIX_OUT_NAME=$VSIX_OUT_NAME" >> $GITHUB_ENV
     - run: npm install
     - run: npm install -g @vscode/vsce
-    - run: vsce package --out ios-debug.vsix
+    - run: vsce package --out "$VSIX_OUT_NAME"
     - uses: actions/upload-artifact@v3
       with:
-        path: ios-debug.vsix
+        path: ${{ env.VSIX_OUT_NAME }}
 
   test:
     runs-on: macos-12
