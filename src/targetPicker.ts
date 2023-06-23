@@ -59,6 +59,50 @@ async function isCompanionAvailable() {
 	return companionFound;
 }
 
+async function canStartUsbmuxdReverseProxy() {
+	return await vscode.commands.executeCommand<boolean>("ios-debug-companion.canStartUsbmuxdReverseProxy") ?? false;
+}
+
+let companionInstallationPromptShown = false;
+async function promptInstallCompanion() {
+	// Don't show the prompt again if we already shown once in the session
+	if (companionInstallationPromptShown) {
+		return;
+	}
+	companionInstallationPromptShown = true;
+
+	logger.log("Showing prompt to install companion");
+
+	const INSTALL = "Install";
+	const choice = await vscode.window.showInformationMessage(
+		"Install [iOS Debug Companion](https://marketplace.visualstudio.com/items?itemName=nisargjhaveri.ios-debug-companion) extension to enable debugging on locally connected devices.",
+		INSTALL
+	);
+
+	if (choice !== INSTALL) {
+		return;
+	}
+	
+	await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress) => {
+		const companionExtensionId = "nisargjhaveri.ios-debug-companion";
+		logger.log(`Installing companion extension (${companionExtensionId})`);
+		progress.report({message: `Installing companion extension (${companionExtensionId}) ...`});
+		await vscode.commands.executeCommand("workbench.extensions.installExtension", companionExtensionId);
+	});
+
+	if (!await isCompanionAvailable()) {
+		// Still not available.
+		logger.error("Companion extension still not available. Could not install?");
+		return;
+	}
+	
+	logger.error("Companion extension installed.");
+
+	// Retrigger companion connection. We reached here from that flow in the first place.
+	// User already has an intent to use remote features.
+	await ensureCompanionConnected();
+}
+
 let usbmuxdReverseProxyServer: UsbmuxdReverseProxyServer;
 async function ensureCompanionConnected() {
 	// Do nothing if not remote
@@ -87,12 +131,14 @@ async function ensureCompanionConnected() {
 
 			// Check if companion is available
 			if (!await isCompanionAvailable()) {
-				// Prompt to install?
+				promptInstallCompanion().catch(e => {
+					logger.error("Error installing companion extension:", e);
+				});
 				return;
 			}
 
 			// Can we start the reverse proxy?
-			if (!await vscode.commands.executeCommand<boolean>("ios-debug-companion.canStartUsbmuxdReverseProxy")) {
+			if (!await canStartUsbmuxdReverseProxy()) {
 				return;
 			}
 
