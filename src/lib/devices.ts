@@ -46,7 +46,9 @@ function getIosDeployEnvForSource(source: TargetSource): NodeJS.ProcessEnv {
     switch (source) {
         case "companion":
             return {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 "USBMUXD_OVERRIDE": companionUsbmuxdSocketPath,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 "DYLD_INSERT_LIBRARIES": OVERRIDE_USBMUXD_DYLIB,
             };
         case "local":
