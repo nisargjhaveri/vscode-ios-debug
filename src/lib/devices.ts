@@ -1,4 +1,4 @@
-import { Device } from './commonTypes';
+import { Device, TargetSource } from './commonTypes';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as logger from './logger';
@@ -7,23 +7,68 @@ import { PromiseWithChild, spawn } from 'child_process';
 import * as StreamValues from 'stream-json/streamers/StreamValues';
 
 let IOS_DEPLOY = "ios-deploy";
+let OVERRIDE_USBMUXD_DYLIB = "";
 
 {
     let binDir = path.resolve(__dirname, "../bin");
     binDir = fs.existsSync(binDir) ? binDir : path.resolve(__dirname, "../../bin");
-    const iosDeployPath = path.join(binDir, "ios-deploy");
 
+    const iosDeployPath = path.join(binDir, "ios-deploy");
     if (fs.existsSync(iosDeployPath))
     {
         IOS_DEPLOY = iosDeployPath;
     }
+
+    const overrideUsbmuxdDylibPath = path.join(binDir, "override-usbmuxd.dylib");
+    if (fs.existsSync(overrideUsbmuxdDylibPath))
+    {
+        OVERRIDE_USBMUXD_DYLIB = overrideUsbmuxdDylibPath;
+    }
 }
 
-export async function listDevices(): Promise<Device[]>
-{
-    logger.log(`Listing devices using ${IOS_DEPLOY}`);
+let companionUsbmuxdSocketPath: string|undefined;
 
-    return _execFile(IOS_DEPLOY, ['--detect', '--timeout', '1', '--json'])
+function isSourceAvailable(source: TargetSource) {
+    switch (source) {
+        case "local":
+            return true;
+        case "companion":
+            return OVERRIDE_USBMUXD_DYLIB && companionUsbmuxdSocketPath;
+    }
+}
+
+function getIosDeployEnvForSource(source: TargetSource): NodeJS.ProcessEnv {
+    if (!isSourceAvailable(source)) {
+        // We should not reach here!
+        throw new Error(`Source "${source}" is not available`);
+    }
+
+    switch (source) {
+        case "companion":
+            return {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "USBMUXD_OVERRIDE": companionUsbmuxdSocketPath,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                "DYLD_INSERT_LIBRARIES": OVERRIDE_USBMUXD_DYLIB,
+            };
+        case "local":
+            return {};
+    }
+}
+
+export function setCompanionUsbmuxdSocketPath(path?: string) {
+    companionUsbmuxdSocketPath = path;
+}
+
+export async function listDevices(source: TargetSource): Promise<Device[]>
+{
+    if (!isSourceAvailable(source)) {
+        return [];
+    }
+
+    logger.log(`Listing devices using ${IOS_DEPLOY}, source ${source}`);
+
+    return _execFile(IOS_DEPLOY, ['--detect', '--timeout', '1', '--json'], { env: getIosDeployEnvForSource(source) })
         .then(({stdout, stderr}): Device[] => {
             if (stderr) { logger.error(stderr); }
 
@@ -43,13 +88,14 @@ export async function listDevices(): Promise<Device[]>
                     runtime: `iOS ${d.ProductVersion}`,
                     sdk: "iphoneos",
                     modelName: d.modelName,
+                    source,
                 }));
 
-                logger.log(`Found ${devices.length} devices`);
+                logger.log(`Found ${devices.length} devices for source ${source}`);
 
             return devices;
         }).catch((e: any) => {
-            logger.log(`Could not find any connected device: ${e.toString().trimEnd()}`);
+            logger.log(`Could not find any connected device for source ${source}: ${e.toString().trimEnd()}`);
             e.stderr && logger.error(e.stderr);
 
             return [];
@@ -63,7 +109,7 @@ export async function isValid(target: Device): Promise<boolean>
     return new Promise((resolve, reject) => {
         let found = false;
 
-        let p = spawn(IOS_DEPLOY, ['--detect', '--timeout', '1']);
+        let p = spawn(IOS_DEPLOY, ['--detect', '--timeout', '1'], { env: getIosDeployEnvForSource(target.source) });
 
         p.on('error', (e) => {
             if (!found)
@@ -109,7 +155,11 @@ export async function install(target: Device, path: string, cancellationToken: {
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json']);
+    let p = _execFile(
+        IOS_DEPLOY,
+        ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json'],
+        { env: getIosDeployEnvForSource(target.source) }
+    );
 
     cancellationToken.cancel = () => p.child.kill();
 
@@ -143,7 +193,11 @@ export async function launch(target: Device, path: string): Promise<number>
     logger.log(`Launching app (path: ${path}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let {stdout, stderr} = await _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall']);
+    let {stdout, stderr} = await _execFile(
+        IOS_DEPLOY,
+        ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall'],
+        { env: getIosDeployEnvForSource(target.source) }
+    );
 
     let match = stdout.match(new RegExp(`^Process (\\d+) detached$`, 'm'));
     if (!match) {
@@ -161,7 +215,7 @@ export async function debugserver(target: Device, cancellationToken: {cancel?():
     logger.log(`Starting debugserver for device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--nolldb', '--faster-path-search', '--json']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--nolldb', '--faster-path-search', '--json'], { env: getIosDeployEnvForSource(target.source) });
 
     cancellationToken.cancel = () => p.child.kill();
 
@@ -199,7 +253,7 @@ export async function getAppDevicePath(target: Device, appBundleId: string) {
     logger.log(`Getting path for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--list_bundle_id', '--json', '-k', 'Path']);
+    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--list_bundle_id', '--json', '-k', 'Path'], { env: getIosDeployEnvForSource(target.source) });
 
     let appDevicePath: string|undefined = await new Promise((resolve, reject) => {
         p.catch(reject);
@@ -237,7 +291,11 @@ export async function getPidFor(target: Device, appBundleId: string): Promise<nu
     logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let p = _execFile(IOS_DEPLOY, ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--get_pid', '--bundle_id', appBundleId, '--json']);
+    let p = _execFile(
+        IOS_DEPLOY,
+        ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--get_pid', '--bundle_id', appBundleId, '--json'],
+        { env: getIosDeployEnvForSource(target.source) }
+    );
 
     let pid: number = await new Promise((resolve, reject) => {
         p.catch(reject);

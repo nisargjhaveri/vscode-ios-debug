@@ -17,7 +17,10 @@ export interface Simulator extends Target {
     state: "Booted" | "Shutdown",
 }
 
+export type TargetSource = "local" | "companion";
+
 export interface Device extends Target {
     type: "Device",
     modelName: string,
+    source: TargetSource,
 }

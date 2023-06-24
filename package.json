@@ -94,6 +94,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Automatically focus iOS Simulator window when attaching or continuing after a breakpoint."
+				},
+				"ios-debug.shareLocalDevices": {
+					"enum": ["ask", "always", "never"],
+					"default": "ask",
+					"description": "In remote development mode, allow using locally connected devices for debugging from the remote."
 				}
 			}
 		}
@@ -108,7 +113,9 @@
 		"build-example": "cd 'examples/Sample App/'; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphoneos; xcodebuild -configuration Debug -allowProvisioningUpdates -sdk iphonesimulator",
 		"pretest": "npm run compile-test && npm run lint && npm run build-example",
 		"test": "node ./out/test/runTest.js",
-		"postinstall": "mkdir bin && cp node_modules/ios-deploy/build/Release/ios-deploy bin/ios-deploy"
+		"install-ios-deploy": "cp node_modules/ios-deploy/build/Release/ios-deploy bin/ios-deploy",
+		"install-override-usbmuxd": "cd usbmuxd && make install",
+		"postinstall": "mkdir -p bin && npm run install-ios-deploy && npm run install-override-usbmuxd"
 	},
 	"extensionDependencies": [
 		"vadimcn.vscode-lldb"
@@ -116,9 +123,10 @@
 	"devDependencies": {
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^10.0.1",
-		"@types/node": "^12.20.17",
+		"@types/node": "^20.3.1",
 		"@types/stream-json": "^1.7.3",
 		"@types/vscode": "^1.56.0",
+		"@types/ws": "^8.5.5",
 		"@typescript-eslint/eslint-plugin": "^4.28.4",
 		"@typescript-eslint/parser": "^4.28.4",
 		"@vscode/test-electron": "^2.3.3",
@@ -129,7 +137,9 @@
 		"typescript": "^4.3.5"
 	},
 	"dependencies": {
+		"bpmux": "^8.2.1",
 		"ios-deploy": "^1.12.2",
-		"stream-json": "^1.8.0"
+		"stream-json": "^1.8.0",
+		"ws": "^8.13.0"
 	}
 }
