@@ -1,4 +1,5 @@
 export type TargetType = "Device" | "Simulator";
+export type TargetSource = "local" | "companion";
 
 export interface Target {
     udid: string,
@@ -8,6 +9,7 @@ export interface Target {
     buildVersion: string,
     runtime: string,
     sdk: string,
+    source: TargetSource,
 };
 
 export interface Simulator extends Target {
@@ -17,10 +19,7 @@ export interface Simulator extends Target {
     state: "Booted" | "Shutdown",
 }
 
-export type TargetSource = "local" | "companion";
-
 export interface Device extends Target {
     type: "Device",
     modelName: string,
-    source: TargetSource,
 }

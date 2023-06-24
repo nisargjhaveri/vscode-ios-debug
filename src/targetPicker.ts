@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as logger from './lib/logger';
-import { Device, Simulator, Target } from './lib/commonTypes';
+import { Device, Simulator, Target, TargetSource } from './lib/commonTypes';
 import { setCompanionUsbmuxdSocketPath } from './lib/devices';
 import { listTargets, isValid as isValidTarget, getTarget } from './lib/targets';
 import { UsbmuxdReverseProxyServer } from './lib/remoteUsbmuxd';
@@ -172,6 +172,21 @@ async function ensureCompanionConnected() {
 	}
 }
 
+function getLocationNameForSource(source: TargetSource): string|undefined {
+	if (!vscode.env.remoteName) {
+		return undefined;
+	}
+
+	switch (source) {
+		case "local":
+			return "Remote";
+		case "companion":
+			return "Local";
+	}
+
+	return undefined;
+}
+
 // Command callbacks
 export async function pickTarget()
 {
@@ -198,7 +213,7 @@ export async function pickTarget()
 					(t.type === "Simulator") ? 
 						(t as Simulator).state === "Booted" ? "Booted" : "" :
 						(t as Device).modelName,
-				detail: `${t.type} ‧ ${t.runtime}`,
+				detail: [t.type, t.runtime, getLocationNameForSource(t.source)].filter(v => v).join(" ‧ "),
 				target: t,
 			}));
 	});

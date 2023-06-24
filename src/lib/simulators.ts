@@ -48,6 +48,7 @@ export async function listSimulators(): Promise<Simulator[]>
                             dataPath,
                             logPath,
                             state,
+                            source: "local"
                         }))
                 );
             }
