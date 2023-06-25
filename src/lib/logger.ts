@@ -20,6 +20,9 @@ function formatSingleMessage(message: any)
     else if (message === null) {
         return "null";
     }
+    else if (message instanceof Error) {
+        return message.toString();
+    }
     else if (typeof message === "object") {
         return JSON.stringify(message, undefined, 4);
     }
