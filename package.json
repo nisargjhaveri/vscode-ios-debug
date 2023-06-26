@@ -51,6 +51,11 @@
 								"description": "Bundle ID of the app to debug",
 								"type": "string"
 							},
+							"iosInstallApp": {
+								"description": "Whether to install the app before launching",
+								"type": "boolean",
+								"default": true
+							},
 							"sessionName": {
 								"description": "Update the debug session name to easily identify multiple running sessions",
 								"type": "string"

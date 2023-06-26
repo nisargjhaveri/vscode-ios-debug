@@ -48,6 +48,7 @@ When `request` is set to `launch`, the app is launched on the iOS device or simu
 |**program**        |string|Y| Path to the built `<name>.app` file for your app.
 |**iosBundleId**    |string|Y| App bundle identifier for the specified app.
 |**iosTarget**      |string|Y| If this config should target iOS.<ul><li>`false` (default) if this config is not for iOS debugging</li><li>`"select"` if the target picker should be shown</li><li>`"last-selected"` if last selected target should be used if available</li></ul>
+|**iosInstallApp**  |string| | Whether to install the app on target before launching. Only available with `request = launch`. <ul><li>`true` (default) Install the app specified by `program` before launching.</li><li>`false` Do not install the app. Directly launch the already installed app on the target.</li></ul>
 |**args**           |[string]| | Command line parameters to pass while launching the app. Only available with `request = launch`.
 |**env**            |dictionary| | Additional environment variables when launching the app. Only available with `request = launch`.
 

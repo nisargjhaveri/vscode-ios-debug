@@ -82,6 +82,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             ...dbgConfig.env
         };
 
+        if (typeof dbgConfig.iosInstallApp === "undefined") {
+            dbgConfig.iosInstallApp = true;
+        }
+
         let target: Target = dbgConfig.iosTarget;
 
         if (target.type === "Simulator")
@@ -97,15 +101,26 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                 let stdout = `${outputBasename}-stdout`;
                 let stderr = `${outputBasename}-stderr`;
 
-                pid = await targetCommand.simulatorInstallAndLaunch({
-                    target: target as Simulator,
-                    path: dbgConfig.program,
-                    bundleId: this.ensureBundleId(dbgConfig),
-                    env: dbgConfig.env,
-                    args: dbgConfig.args,
-                    stdio: {stdout, stderr},
-                    waitForDebugger: true,
-                });
+                if (dbgConfig.iosInstallApp) {
+                    pid = await targetCommand.simulatorInstallAndLaunch({
+                        target: target as Simulator,
+                        path: dbgConfig.program,
+                        bundleId: this.ensureBundleId(dbgConfig),
+                        env: dbgConfig.env,
+                        args: dbgConfig.args,
+                        stdio: {stdout, stderr},
+                        waitForDebugger: true,
+                    });
+                } else {
+                    pid = await targetCommand.simulatorLaunch({
+                        target: target as Simulator,
+                        bundleId: this.ensureBundleId(dbgConfig),
+                        env: dbgConfig.env,
+                        args: dbgConfig.args,
+                        stdio: {stdout, stderr},
+                        waitForDebugger: true,
+                    });
+                }
 
                 dbgConfig.initCommands.push(`follow ${stdout}`);
                 dbgConfig.initCommands.push(`follow ${stderr}`);
@@ -135,10 +150,17 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             let platformPath: string|void;
             if (dbgConfig.iosRequest === "launch")
             {
-                platformPath = await targetCommand.deviceInstall({
-                    target: target as Device,
-                    path: dbgConfig.program,
-                });
+                if (dbgConfig.iosInstallApp) {
+                    platformPath = await targetCommand.deviceInstall({
+                        target: target as Device,
+                        path: dbgConfig.program,
+                    });
+                } else {
+                    platformPath = await targetCommand.deviceAppPath({
+                        target: target as Device,
+                        bundleId: this.ensureBundleId(dbgConfig),
+                    });
+                }
             }
             else
             {
@@ -162,7 +184,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             let debugserverPort = await targetCommand.deviceDebugserver({
                 target: target as Device,
             });
-            if (!debugserverPort) { return null;}
+            if (!debugserverPort) { return null; }
 
             dbgConfig.iosDebugserverPort = debugserverPort;
 
