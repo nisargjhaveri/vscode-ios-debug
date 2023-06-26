@@ -20,6 +20,11 @@ async function resolveArgs<T extends {target?: Target}>(args: T): Promise<T>
 	return args;
 }
 
+function logAndThrow(e: any) {
+	logger.error(e);
+	throw e;
+}
+
 export async function simulatorInstall(args: {target: Simulator, path: string})
 {
 	let {target, path} = await resolveArgs(args);
@@ -92,7 +97,8 @@ export async function simulatorGetPidFor(args: {target: Simulator, bundleId: str
 	let {target, bundleId} = await resolveArgs(args);
 
 	return simulator.getPidFor(target, bundleId)
-		.then((pid) => pid.toString());
+		.then((pid) => pid.toString())
+		.catch(logAndThrow);
 }
 
 export async function deviceGetPidFor(args: {target: Device, bundleId: string})
@@ -100,14 +106,16 @@ export async function deviceGetPidFor(args: {target: Device, bundleId: string})
 	let {target, bundleId} = await resolveArgs(args);
 
 	return device.getPidFor(target, bundleId)
-		.then((pid) => pid.toString());
+		.then((pid) => pid.toString())
+		.catch(logAndThrow);
 }
 
 export async function deviceAppPath(args: {target: Device, bundleId: string})
 {
 	let {target, bundleId} = await resolveArgs(args);
 
-	return device.getAppDevicePath(target, bundleId);
+	return device.getAppDevicePath(target, bundleId)
+		.catch(logAndThrow);
 }
 
 export async function deviceInstall(args: {target: Device, path: string})

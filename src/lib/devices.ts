@@ -269,12 +269,16 @@ export async function getAppDevicePath(target: Device, appBundleId: string) {
 
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     let apps: {[appBundleId: string]: {"CFBundleIdentifier": string, "Path": string}} = event.Apps;
-                    resolve(appBundleId in apps ? apps[appBundleId]?.Path : undefined);
+                    if (appBundleId in apps) {
+                        resolve(apps[appBundleId].Path);
+                    } else {
+                        reject(new Error(`Could not find the app (${appBundleId}) on device. Is the app installed?`));
+                    }
                 }
             })
             .on("end", () => {
                 if (!eventFound) {
-                    resolve(undefined);
+                    reject(new Error(`Could not find the app (${appBundleId}) on device.`));
                 }
             });
     });
@@ -315,13 +319,13 @@ export async function getPidFor(target: Device, appBundleId: string): Promise<nu
                         resolve(pid);
                     }
                     else {
-                        reject(new Error(`Could not find pid for ${appBundleId}`));
+                        reject(new Error(`Could not find pid for ${appBundleId}. Is the app running?`));
                     }
                 }
             })
             .on("end", () => {
                 if (!eventFound) {
-                    reject(new Error(`Could not find pid for ${appBundleId}`));
+                    reject(new Error(`Could not find pid for ${appBundleId}.`));
                 }
             });
     });
