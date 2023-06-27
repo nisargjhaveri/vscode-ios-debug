@@ -9,6 +9,7 @@ Debug iOS apps directly from VS Code.
 - Install and launch apps for debugging automatically based on the VS Code launch config.
 - Debugging on both iOS devices and simulators.
 - Pick a connected device or installed simulator for debugging.
+- Seamlessly debug on locally connected devices when working using [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview).
 - All other debugging features supported by [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension.
 
 
@@ -68,6 +69,18 @@ The extension exposes a few commands that can be used in tasks or launch config 
 - `ios-debug.targetType` - Selected target's type. Either "Simulator" or "Device"
 - `ios-debug.targetName` - Selected target's name.
 - `ios-debug.targetSdk` - Selected target's sdk type. Either "iphonesimulator" or "iphoneos"
+
+## Remote Development
+The extension supports debugging on locally connected devices when using [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview). If the setup is correct, the locally connected devices will automatically be listed in the target picker.
+
+[iOS Debug Companion](https://marketplace.visualstudio.com/items?itemName=nisargjhaveri.ios-debug-companion) extension is required for this to work. It'll automatically prompt to install this extension when needed.
+
+`ios-debug.shareLocalDevices` configuration can be tweaked to control whether to allow debugging on local devices or not based on your requirements.
+
+Your local machine may need additional setup for this to work depending on the OS.
+- macOS: No additional setup should be required.
+- Windows: [iTunes](https://www.apple.com/in/itunes/) needs to installed. Make sure "Apple Mobile Device Service (AMDS)" is running if the local devices are still not visible.
+- Linux: [usbmuxd](https://github.com/libimobiledevice/usbmuxd) needs to be installed and running.
 
 
 # Known limitations
