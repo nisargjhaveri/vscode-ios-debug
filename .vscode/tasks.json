@@ -14,7 +14,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "compile-test",
+			"script": "pretest",
 			"problemMatcher": "$tsc",
 			"isBackground": false,
 			"presentation": {
