@@ -6,7 +6,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Sample App",
+			"name": "Launch",
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
@@ -15,7 +15,16 @@
 			"preLaunchTask": "${defaultBuildTask}"
 		},
 		{
-			"name": "Attach Sample App",
+			"name": "Launch without Installing",
+			"type": "lldb",
+			"request": "launch",
+			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
+			"iosBundleId": "com.ios-debug.Sample-App",
+			"iosTarget": "select",
+			"iosInstallApp": false,
+		},
+		{
+			"name": "Attach",
 			"type": "lldb",
 			"request": "attach",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
