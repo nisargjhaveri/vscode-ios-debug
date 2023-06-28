@@ -101,7 +101,11 @@
 					"description": "Automatically focus iOS Simulator window when attaching or continuing after a breakpoint."
 				},
 				"ios-debug.shareLocalDevices": {
-					"enum": ["ask", "always", "never"],
+					"enum": [
+						"ask",
+						"always",
+						"never"
+					],
 					"default": "ask",
 					"description": "In remote development mode, allow using locally connected devices for debugging from the remote."
 				}
