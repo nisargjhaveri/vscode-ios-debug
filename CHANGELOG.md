@@ -2,6 +2,16 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.4.0
+### Added
+- Debug on local devices when VS Code is connected to Remote Development via SSH.
+  - Automatically prompt to install companion and ask if local devices should be shared when running in remote.
+  - List and debug on locally connected physical iOS devices without any extraneous setup
+- Add new option `iosInstallApp` to launch config to enable/disable installing app before launching.
+
+### Changed
+- Better error handling and logging at a few places.
+
 ## v0.3.3
 ### Changed
 - Fix attach behavior on device. Properly attach to running app when targeting a device.
