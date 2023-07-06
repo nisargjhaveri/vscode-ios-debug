@@ -4,4 +4,4 @@
 1. `npm version -f [major|minor|patch]`
 1. `git push --follow-tags`
 1. Wait for the Github Actions to be complete. Download `artifact.zip`
-1. Rename `ios-debug.vsix` to `ios-debug-<version>.vsix` and upload to the Github Release as well as VS Code Marketplace.
+1. Upload `ios-debug-<version>.vsix` to the Github Release as well as VS Code Marketplace.
