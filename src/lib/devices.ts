@@ -155,15 +155,15 @@ export async function install(target: Device, path: string, cancellationToken: {
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(
+    let p = spawn(
         IOS_DEPLOY,
         ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json'],
-        { maxBuffer: 100 * 1024 * 1024, env: getIosDeployEnvForSource(target.source) }
+        { env: getIosDeployEnvForSource(target.source) }
     );
 
-    cancellationToken.cancel = () => p.child.kill();
+    cancellationToken.cancel = () => p.kill();
 
-    p.child.stdout?.pipe(StreamValues.withParser())
+    p.stdout?.pipe(StreamValues.withParser())
         .on('data', (data) => {
             let event = data.value;
 
