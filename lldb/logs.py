@@ -4,7 +4,7 @@ import os
 import sys
 
 def background_follow(filename):
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         file.seek(0, os.SEEK_END)
         utf8_stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False)
 
