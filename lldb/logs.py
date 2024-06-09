@@ -19,7 +19,7 @@ def background_follow(filename):
                 print(line.rstrip("\n"), end=None, file=utf8_stdout, flush=True)
                 
             except UnicodeDecodeError as e:
-                print(f"UnicodeDecodeError occurred while following file {filename}: f{e}")
+                print(f"UnicodeDecodeError occurred while following file {filename}: {e}")
 
 
 def follow(debugger, command, result, internal_dict):
