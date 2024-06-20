@@ -1,19 +1,25 @@
 import threading
 import time
 import os
+import sys
 
 def background_follow(filename):
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         file.seek(0, os.SEEK_END)
+        utf8_stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False)
 
         while True:
-            line = file.readline()
-
-            if not line:
-                time.sleep(0.1)
-                continue
-
-            print(line.rstrip("\n"), end=None)
+            try:
+                line = file.readline()
+                
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                    
+                print(line.rstrip("\n"), end=None, file=utf8_stdout, flush=True)
+                
+            except UnicodeDecodeError as e:
+                print(f"UnicodeDecodeError occurred while following file {filename}: {e}")
 
 
 def follow(debugger, command, result, internal_dict):
