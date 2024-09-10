@@ -6,6 +6,7 @@ import { randomString } from './lib/utils';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, getOrPickTarget } from './targetPicker';
 import * as simulatorFocus from './simulatorFocus';
+import { _execFile } from './lib/utils';
 
 let context: vscode.ExtensionContext;
 
@@ -32,7 +33,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         else if (typeof iosTarget === "string") {
             return await getTargetFromUDID(iosTarget);
         }
-        
+
         return undefined;
     }
 
@@ -89,14 +90,14 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         let target: Target = dbgConfig.iosTarget;
 
         if (target.type === "Simulator")
-        {
+            {
             let pid: string|void;
 
             // Check if we have enough permissions for the simulator focus monitor.
             let enableSimulatorFocusMonitor = vscode.workspace.getConfiguration().get('ios-debug.focusSimulator') && await simulatorFocus.tryEnsurePermissions();
 
-            if (dbgConfig.iosRequest === "launch")
-            {
+            if (dbgConfig.iosRequest === "launch") 
+                {
                 let outputBasename = getOutputBasename();
                 let stdout = `${outputBasename}-stdout`;
                 let stderr = `${outputBasename}-stderr`;
@@ -125,7 +126,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                 dbgConfig.initCommands.push(`follow ${stdout}`);
                 dbgConfig.initCommands.push(`follow ${stderr}`);
             }
-            else
+            else 
             {
                 pid = await targetCommand.simulatorGetPidFor({
                     target: target as Simulator,
@@ -145,11 +146,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
             delete dbgConfig.env;
             delete dbgConfig.args;
         }
-        else if (target.type === "Device")
-        {
-            let platformPath: string|void;
-            if (dbgConfig.iosRequest === "launch")
+        else if (target.type === "Device") 
             {
+            let platformPath: string|void;
+            if (dbgConfig.iosRequest === "launch") 
+                {
                 if (dbgConfig.iosInstallApp) {
                     platformPath = await targetCommand.deviceInstall({
                         target: target as Device,
@@ -162,7 +163,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                     });
                 }
             }
-            else
+            else 
             {
                 platformPath = await targetCommand.deviceAppPath({
                     target: target as Device,
@@ -181,16 +182,37 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
             if (!platformPath) { return null; }
 
-            let debugserverPort = await targetCommand.deviceDebugserver({
-                target: target as Device,
-            });
-            if (!debugserverPort) { return null; }
-
-            dbgConfig.iosDebugserverPort = debugserverPort;
-
             dbgConfig.preRunCommands = (dbgConfig.preRunCommands instanceof Array) ? dbgConfig.preRunCommands : [];
             dbgConfig.preRunCommands.push(`script lldb.target.module[0].SetPlatformFileSpec(lldb.SBFileSpec('${platformPath}'))`);
-            dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);
+
+            // iOS 17+ uses Apple LLDB directly to create and attach to the debugserver,
+            // below iOS 17 spawn debugserver with ios-deploy
+            let iosMajorVersion = dbgConfig.iosTarget.version.split('.')[0] as number;
+            if (iosMajorVersion < 17) {
+                let debugserverPort = await targetCommand.deviceDebugserver({
+                    target: target as Device,
+                });
+                if (!debugserverPort) { return null; }
+
+                dbgConfig.iosDebugserverPort = debugserverPort;
+                dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);
+            } else {
+                // launch the app via devicectl
+                await _execFile(
+                    'xcrun',
+                    ['devicectl', 'device', 'process', 'launch', '--device', target.udid, '--start-stopped', this.ensureBundleId(dbgConfig)],
+                );
+
+                // attach to the app via LLDB
+                dbgConfig.processCreateCommands = (dbgConfig.postRunCommands instanceof Array) ? dbgConfig.processCreateCommands : [];
+                // LLDB `device` command needs Apple's beta LLDB set as backend for CodeLLDB
+                // e.g. set vscode://settings/lldb.library to /Applications/Xcode-beta.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB
+                dbgConfig.processCreateCommands.push(`script lldb.debugger.HandleCommand("device select ${target.udid}")`);
+                // using detour with `script` command, as direct evocation causes CodeLLDB to crash at the moment
+                // probably due to a bug in CodeLLDB / unusal exit results from the `device` command
+                let processName = path.basename(platformPath).split('.')[0];
+                dbgConfig.processCreateCommands.push(`script lldb.debugger.HandleCommand("device process attach --name '${processName}'")`);
+            }
         }
 
         logger.log("resolved debug configuration", dbgConfig);
