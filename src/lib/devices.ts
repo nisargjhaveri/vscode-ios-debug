@@ -290,9 +290,44 @@ export async function getAppDevicePath(target: Device, appBundleId: string) {
     return appDevicePath;
 }
 
-export async function getPidFor(target: Device, appBundleId: string): Promise<number>
+export async function getPidForUsingDevicectl(target: Device, appBundleId: string): Promise<number> 
 {
-    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid}), using xcrun devicectl`);
+    let time = new Date().getTime();
+
+    let platformPath = await getAppDevicePath(target, appBundleId);
+
+    let p = _execFile(
+        'xcrun',
+         ['devicectl', 'device', 'info', 'processes',
+          '--device', target.udid,
+          '--json-output', '-']);
+
+    let pid: number = await p.then(({stdout, stderr}): number => {
+        if (stderr) { logger.error(stderr); }
+
+        let processes = JSON.parse(stdout).result.runningProcesses;
+        // ToDo
+        // Use --filter option of devicectl to get the process directly, 
+        // once it is actually working properly.
+        for (let process of processes) {
+            logger.log(`Checking process ${process.processIdentifier} with executable ${process.executable}`);
+            if (process.executable && platformPath && process.executable.includes(encodeURI(platformPath))) {
+                return process.processIdentifier;
+            }
+        }
+
+        throw new Error(`Could not find pid for ${appBundleId}. Is the app running?`);
+    });
+
+    logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
+
+    return pid;
+}
+
+export async function getPidForUsingIOSDeploy(target: Device, appBundleId: string): Promise<number>
+{
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid}), using ios-deploy`);
     let time = new Date().getTime();
 
     let p = _execFile(
@@ -335,4 +370,13 @@ export async function getPidFor(target: Device, appBundleId: string): Promise<nu
     logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
 
     return pid;
+}
+
+export async function getPidFor(target: Device, appBundleId: string): Promise<number>
+{
+    if(target.version.split('.')[0] < '17') {
+        return await getPidForUsingIOSDeploy(target, appBundleId);
+    } else {
+        return await getPidForUsingDevicectl(target, appBundleId);
+    }
 }
