@@ -10,7 +10,7 @@
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
-			"iosBundleId": "com.ios-debug.Sample-App",
+			"iosBundleId": "com.ios-debug.Sample-App2",
 			"iosTarget": "select",
 			"preLaunchTask": "${defaultBuildTask}"
 		},
@@ -19,7 +19,7 @@
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
-			"iosBundleId": "com.ios-debug.Sample-App",
+			"iosBundleId": "com.ios-debug.Sample-App2",
 			"iosTarget": "select",
 			"iosInstallApp": false,
 		},
@@ -28,7 +28,7 @@
 			"type": "lldb",
 			"request": "attach",
 			"program": "${workspaceFolder}/build/Debug-${command:ios-debug.targetSdk}/Sample App.app",
-			"iosBundleId": "com.ios-debug.Sample-App",
+			"iosBundleId": "com.ios-debug.Sample-App2",
 			"iosTarget": "select",
 		},
 	]

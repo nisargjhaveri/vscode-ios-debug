@@ -6,6 +6,8 @@ import * as devices from '../../lib/devices';
 import { _execFile } from '../../lib/utils';
 import { Device } from '../../lib/commonTypes';
 
+const TEST_BUNDLE_IDENTIFIER = "com.ios-debug.Sample-App2";
+
 const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 
 (testDeviceUDID ? suite : suite.skip)('Devices', () => {
@@ -75,11 +77,11 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		}).timeout(5_000);
 
 		test('Get pid failure', async function() {
-			assert.rejects(devices.getPidFor(testDeviceTarget, "com.ios-debug.Sample-App"), /Could not find pid for/);
+			assert.rejects(devices.getPidFor(testDeviceTarget, TEST_BUNDLE_IDENTIFIER), /Could not find pid for/);
 		}).timeout(5_000);;
 
 		test('Get app path on device', async function() {
-			let appBundlePath = await devices.getAppDevicePath(testDeviceTarget, "com.ios-debug.Sample-App");
+			let appBundlePath = await devices.getAppDevicePath(testDeviceTarget, TEST_BUNDLE_IDENTIFIER);
 
 			assert.strictEqual(appBundlePath, installAppBundlePath);
 		}).timeout(5_000);;
@@ -95,7 +97,7 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		}).timeout(10_000);
 
 		test('Get pid success', async function() {
-			const pid = await devices.getPidFor(testDeviceTarget, "com.ios-debug.Sample-App");
+			const pid = await devices.getPidFor(testDeviceTarget, TEST_BUNDLE_IDENTIFIER);
 			assert.strictEqual(pid, launchPid);
 		}).timeout(5_000);
 

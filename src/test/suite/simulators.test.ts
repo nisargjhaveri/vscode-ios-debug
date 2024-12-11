@@ -6,6 +6,8 @@ import * as simulators from '../../lib/simulators';
 import { _execFile } from '../../lib/utils';
 import { Simulator } from '../../lib/commonTypes';
 
+const TEST_BUNDLE_IDENTIFIER = "com.ios-debug.Sample-App2";
+
 suite('Simulators', () => {
 	const testSimulatorName = 'ios-debug-test-simulator';
 	const testSimulatorDeviceType = 'iPhone 14';
@@ -106,13 +108,13 @@ suite('Simulators', () => {
 		}).timeout(90_000);
 
 		test('Get pid failure', async function() {
-			assert.rejects(simulators.getPidFor(testSimulatorTarget, "com.ios-debug.Sample-App"), /Could not find pid for/);
+			assert.rejects(simulators.getPidFor(testSimulatorTarget, TEST_BUNDLE_IDENTIFIER), /Could not find pid for/);
 		}).timeout(10_000);;
 
 		test('Launch Sample App', async function() {
 			launchPid = await simulators.launch(
 				testSimulatorTarget,
-				"com.ios-debug.Sample-App",
+				TEST_BUNDLE_IDENTIFIER,
 				[],
 				{},
 				{stdout: "/dev/null", stderr: "/dev/null"},
@@ -123,7 +125,7 @@ suite('Simulators', () => {
 		}).timeout(60_000);
 
 		test('Get pid success', async function() {
-			const pid = await simulators.getPidFor(testSimulatorTarget, "com.ios-debug.Sample-App");
+			const pid = await simulators.getPidFor(testSimulatorTarget, TEST_BUNDLE_IDENTIFIER);
 			assert.strictEqual(pid, launchPid);
 		}).timeout(10_000);
 
