@@ -55,3 +55,8 @@ export async function isValid(target: Target): Promise<boolean>
 
     return isValid;
 }
+
+export function getIosMajorVersion(target: Target): number
+{
+    return parseInt(target.version.split(".")[0]);
+}
