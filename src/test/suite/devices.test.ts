@@ -5,6 +5,7 @@ import { suiteSetup, suiteTeardown } from 'mocha';
 import * as devices from '../../lib/devices';
 import { _execFile } from '../../lib/utils';
 import { Device } from '../../lib/commonTypes';
+import { getIosMajorVersion } from '../../lib/targets';
 
 const TEST_BUNDLE_IDENTIFIER = "com.ios-debug.Sample-App2";
 
@@ -87,10 +88,13 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		}).timeout(5_000);;
 
 		test('Launch Sample App', async function() {
-			let appPath = path.resolve(__dirname, "../../../examples/Sample App/build/Debug-iphoneos/Sample App.app");
 			launchPid = await devices.launch(
 				testDeviceTarget,
-				appPath
+				TEST_BUNDLE_IDENTIFIER,
+				[],
+				{},
+				{stdout: "/dev/null", stderr: "/dev/null"},
+				false
 			);
 
 			assert(launchPid > 0);
@@ -102,6 +106,10 @@ const testDeviceUDID = process.env["IOS_DEBUG_TEST_DEVICE"] || "";
 		}).timeout(5_000);
 
 		test('Start debugserver', async function() {
+			if (getIosMajorVersion(testDeviceTarget) >= 17) {
+				this.skip();
+			}
+
 			const {port, exec} = await devices.debugserver(testDeviceTarget, {}, (e) => {
 				// Do nothing for now
 			});

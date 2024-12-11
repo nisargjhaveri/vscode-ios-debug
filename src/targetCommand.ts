@@ -82,7 +82,7 @@ export async function simulatorInstallAndLaunch(a: {target: Simulator, path: str
 			.then(() => simulator.boot(target))
 			.then(() => progress.report({message: "Installing app"}))
 			.then(() => simulator.install(target, path))
-			.then(() => progress.report({message: "Lauching app"}))
+			.then(() => progress.report({message: "Launching app"}))
 			.then(() => simulator.launch(target, bundleId, args, env, {stdout, stderr}, waitForDebugger))
 			.then((pid) => pid.toString())
 			.catch((e) => {
@@ -157,6 +157,25 @@ export async function deviceInstall(args: {target: Device, path: string})
 					logger.error(e);
 					vscode.window.showErrorMessage("Failed to install app on device");
 				});;
+		});
+}
+
+export async function deviceLaunch(a: {target: Device, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean})
+{
+	let {target, bundleId, args, env, stdio: {stdout, stderr}, waitForDebugger} = await resolveArgs(a);
+
+	return vscode.window.withProgress({
+			"location": vscode.ProgressLocation.Notification,
+			"title": "Launching app",
+			"cancellable": false
+		}, (progress, token) => {
+			return Promise.resolve()
+				.then(() => device.launch(target, bundleId, args, env, {stdout, stderr}, waitForDebugger))
+				.then((pid) => pid.toString())
+				.catch((e) => {
+					logger.error(e);
+					vscode.window.showErrorMessage("Failed to launch app on device");
+				});;;
 		});
 }
 

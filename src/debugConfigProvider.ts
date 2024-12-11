@@ -6,6 +6,7 @@ import { randomString } from './lib/utils';
 import * as targetCommand from './targetCommand';
 import { getTargetFromUDID, pickTarget, getOrPickTarget } from './targetPicker';
 import * as simulatorFocus from './simulatorFocus';
+import { getIosMajorVersion } from './lib/targets';
 
 let context: vscode.ExtensionContext;
 
@@ -42,6 +43,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
 
         return dbgConfig.iosBundleId;
+    }
+
+    private shouldUseDevicectl(target: Device): boolean {
+        return getIosMajorVersion(target) >= 17;
     }
 
     async resolveDebugConfiguration(folder: vscode.WorkspaceFolder|undefined, dbgConfig: vscode.DebugConfiguration, token: vscode.CancellationToken) {
@@ -147,7 +152,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
         else if (target.type === "Device")
         {
-            let platformPath: string|void;
+            let platformPath: string|void = undefined;
             if (dbgConfig.iosRequest === "launch")
             {
                 if (dbgConfig.iosInstallApp) {
@@ -155,20 +160,35 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                         target: target as Device,
                         path: dbgConfig.program,
                     });
-                } else {
-                    platformPath = await targetCommand.deviceAppPath({
+                }
+
+                if (this.shouldUseDevicectl(target as Device)) {
+                    let outputBasename = getOutputBasename();
+                    let stdout = `${outputBasename}-stdout`;
+                    let stderr = `${outputBasename}-stderr`;
+                    
+                    const pid = await targetCommand.deviceLaunch({
                         target: target as Device,
                         bundleId: this.ensureBundleId(dbgConfig),
+                        env: dbgConfig.env,
+                        args: dbgConfig.args,
+                        stdio: {stdout, stderr},
+                        waitForDebugger: true,
                     });
+
+                    if (!pid) { return null; }
+
+                    dbgConfig.pid = pid;
+
+                    dbgConfig.initCommands.push(`follow ${stdout}`);
+                    dbgConfig.initCommands.push(`follow ${stderr}`);
+
+                    delete dbgConfig.env;
+                    delete dbgConfig.args;
                 }
             }
             else
             {
-                platformPath = await targetCommand.deviceAppPath({
-                    target: target as Device,
-                    bundleId: this.ensureBundleId(dbgConfig),
-                });
-
                 let pid = await targetCommand.deviceGetPidFor({
                     target: target as Device,
                     bundleId: this.ensureBundleId(dbgConfig),
@@ -179,18 +199,31 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
                 dbgConfig.pid = pid;
             }
 
+            if (!platformPath) {
+                platformPath = await targetCommand.deviceAppPath({
+                    target: target as Device,
+                    bundleId: this.ensureBundleId(dbgConfig),
+                });
+            }
+
             if (!platformPath) { return null; }
-
-            let debugserverPort = await targetCommand.deviceDebugserver({
-                target: target as Device,
-            });
-            if (!debugserverPort) { return null; }
-
-            dbgConfig.iosDebugserverPort = debugserverPort;
 
             dbgConfig.preRunCommands = (dbgConfig.preRunCommands instanceof Array) ? dbgConfig.preRunCommands : [];
             dbgConfig.preRunCommands.push(`script lldb.target.module[0].SetPlatformFileSpec(lldb.SBFileSpec('${platformPath}'))`);
-            dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);
+
+            if (this.shouldUseDevicectl(target as Device)) {
+                dbgConfig.processCreateCommands = (dbgConfig.processCreateCommands instanceof Array) ? dbgConfig.processCreateCommands : [];
+                dbgConfig.processCreateCommands.push(`script lldb.debugger.HandleCommand("device select ${target.udid}")`);
+                dbgConfig.processCreateCommands.push(`script lldb.debugger.HandleCommand("device process attach -c --pid ${dbgConfig.pid}")`);
+            } else {
+                let debugserverPort = await targetCommand.deviceDebugserver({
+                    target: target as Device,
+                });
+                if (!debugserverPort) { return null; }
+
+                dbgConfig.iosDebugserverPort = debugserverPort;
+                dbgConfig.preRunCommands.push(`process connect connect://127.0.0.1:${debugserverPort}`);
+            }
         }
 
         logger.log("resolved debug configuration", dbgConfig);

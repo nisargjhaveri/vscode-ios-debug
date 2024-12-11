@@ -5,6 +5,7 @@ import * as logger from './logger';
 import { _execFile } from './utils';
 import { PromiseWithChild, spawn } from 'child_process';
 import * as StreamValues from 'stream-json/streamers/StreamValues';
+import { getIosMajorVersion } from './targets';
 
 let IOS_DEPLOY = "ios-deploy";
 let OVERRIDE_USBMUXD_DYLIB = "";
@@ -188,26 +189,58 @@ export async function install(target: Device, path: string, cancellationToken: {
     return installationPath;
 }
 
-export async function launch(target: Device, path: string): Promise<number>
+export async function launch(target: Device, bundleId: string, args: string[], env: {[key: string]: string}, stdio: {stdout: string, stderr: string}, waitForDebugger: boolean = false): Promise<number>
 {
-    logger.log(`Launching app (path: ${path}) on device (udid: ${target.udid})`);
+    logger.log(`Launching app (id: ${bundleId}) on device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
-    let {stdout, stderr} = await _execFile(
-        IOS_DEPLOY,
-        ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--justlaunch', '--noinstall'],
-        { env: getIosDeployEnvForSource(target.source) }
-    );
+    args = args ?? [];
+    env = env ?? {};
 
-    let match = stdout.match(new RegExp(`^Process (\\d+) detached$`, 'm'));
-    if (!match) {
-        throw new Error("Could not launch and get pid");
+    let devicectlEnv: {[key: string]: string} = {};
+
+    Object.keys(env).forEach((key) => {
+        devicectlEnv[`DEVICECTL_CHILD_${key}`] = env[key];
+    });
+
+    let process = spawn(
+        'xcrun',
+        [
+            'devicectl',
+            'device',
+            'process',
+            'launch', 
+            ...(waitForDebugger ? ['--start-stopped'] : []),
+            '--terminate-existing',
+            '--json-output', '-',
+            '--console',
+            '--device', target.udid,
+            bundleId,
+            ...args
+        ],
+        {
+            env: devicectlEnv
+        }
+    );
+    process.stdout.pipe(fs.createWriteStream(stdio.stdout));
+    process.stderr.pipe(fs.createWriteStream(stdio.stderr));
+
+    // devicectl doesn't print the pid until the process terminates (output is buffered),
+    // so instead get the pid once the app is launched.
+    let start = new Date().getTime();
+    while (new Date().getTime() - start < 30_000) {
+        try {
+            let pid = await getPidFor(target, bundleId);
+            logger.log(`Launched in ${new Date().getTime() - time} ms`);
+            return pid;
+        } catch (error) {
+            logger.log(`Waiting for app to launch`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
     }
 
-    let pid = parseInt(match[1]);
-
-    logger.log(`Launched in ${new Date().getTime() - time} ms`);
-    return pid;
+    logger.log(`Launch failed in ${new Date().getTime() - time} ms`);
+    throw new Error("Could not launch and get pid");
 }
 
 export async function debugserver(target: Device, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<{port: number, exec: PromiseWithChild<{stdout:string, stderr:string}>}>
@@ -290,9 +323,9 @@ export async function getAppDevicePath(target: Device, appBundleId: string) {
     return appDevicePath;
 }
 
-export async function getPidFor(target: Device, appBundleId: string): Promise<number>
+async function getPidForUsingIOSDeploy(target: Device, appBundleId: string): Promise<number>
 {
-    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid})`);
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid}), using ios-deploy`);
     let time = new Date().getTime();
 
     let p = _execFile(
@@ -335,4 +368,45 @@ export async function getPidFor(target: Device, appBundleId: string): Promise<nu
     logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
 
     return pid;
+}
+
+async function getPidForUsingDevicectl(target: Device, appBundleId: string): Promise<number> 
+{
+    logger.log(`Getting pid for app (bundle id: ${appBundleId}) on device (udid: ${target.udid}), using devicectl`);
+    const time = new Date().getTime();
+
+    const platformPath = await getAppDevicePath(target, appBundleId);
+
+    const {stdout, stderr} = await _execFile(
+        'xcrun',
+         ['devicectl', 'device', 'info', 'processes',
+          '--device', target.udid,
+          '--json-output', '-']);
+
+    let pid: number|undefined = undefined;
+
+    const processes = JSON.parse(stdout)?.result?.runningProcesses;
+    // TODO: Use --filter option of devicectl to get the process directly, once it is actually working properly.
+    for (const process of processes) {
+        if (process.executable && platformPath && process.executable.includes(encodeURI(platformPath))) {
+            pid = process.processIdentifier;
+            break;
+        }
+    }
+
+    if (!pid) {
+        throw new Error(`Could not find pid for ${appBundleId}. Is the app running?`);
+    }
+
+    logger.log(`Got pid "${pid}" in ${new Date().getTime() - time} ms`);
+
+    return pid;
+}
+
+export async function getPidFor(target: Device, appBundleId: string): Promise<number> {
+    if (getIosMajorVersion(target) >= 17) {
+        return await getPidForUsingDevicectl(target, appBundleId);
+    } else {
+        return await getPidForUsingIOSDeploy(target, appBundleId);
+    }
 }
