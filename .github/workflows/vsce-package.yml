@@ -10,12 +10,12 @@ on:
 
 jobs:
   build:
-    runs-on: macos-12
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
     - name: Setup Environment
       run: |
@@ -32,17 +32,17 @@ jobs:
     - run: npm install
     - run: npm install -g @vscode/vsce
     - run: vsce package --out "$VSIX_OUT_NAME"
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: ${{ env.VSIX_OUT_NAME }}
 
   test:
-    runs-on: macos-12
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
     - run: npm install
     - run: npm run pretest
