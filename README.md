@@ -19,7 +19,7 @@ Debug iOS apps directly from VS Code.
 
 # Quick Start
 Here is a minimal launch configuration to get you started
-```
+```json
 {
     "name": "Launch App",
     "type": "lldb",
@@ -32,6 +32,12 @@ Here is a minimal launch configuration to get you started
 
 Look at the [examples/Sample App/.vscode](./examples/Sample%20App/.vscode) for a working example of VS Code config for a sample app.
 
+In addition to the launch config, [lldb.library](vscode://settings/lldb.library) needs to be set in your VS Code settings to appropriate LLDB location. Here is an example
+```json
+{
+    "lldb.library": "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB"
+}
+```
 
 # How to use
 ## Launch config options
@@ -71,6 +77,8 @@ The extension exposes a few commands that can be used in tasks or launch config 
 - `ios-debug.targetSdk` - Selected target's sdk type. Either "iphonesimulator" or "iphoneos"
 
 ## Remote Development
+> Remote development using this method is not supported on devices with iOS 17+
+
 The extension supports debugging on locally connected devices when using [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview). If the setup is correct, the locally connected devices will automatically be listed in the target picker.
 
 [iOS Debug Companion](https://marketplace.visualstudio.com/items?itemName=nisargjhaveri.ios-debug-companion) extension is required for this to work. It'll automatically prompt to install this extension when needed.
