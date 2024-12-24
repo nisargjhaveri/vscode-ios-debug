@@ -2,6 +2,13 @@
 
 All notable changes to the "ios-debug" extension will be documented in this file.
 
+## v0.4.1
+### Changed
+- Fix and enable debugging support for iOS 17+
+  - Note the additional requirement of setting correct lldb path to `lldb.library` setting.
+- Fix issue with non-ascii character in logs.
+- Other minor fixes
+
 ## v0.4.0
 ### Added
 - Debug on local devices when VS Code is connected to Remote Development via SSH.
