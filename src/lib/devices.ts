@@ -6,6 +6,7 @@ import { _execFile } from './utils';
 import { PromiseWithChild, spawn } from 'child_process';
 import * as StreamValues from 'stream-json/streamers/StreamValues';
 import { getIosMajorVersion } from './targets';
+import { randomString } from './utils';
 
 let IOS_DEPLOY = "ios-deploy";
 let OVERRIDE_USBMUXD_DYLIB = "";
@@ -149,22 +150,90 @@ export async function isValid(target: Device): Promise<boolean>
     });
 }
 
+function shouldUseDevicectl(target: Device): boolean {
+    return getIosMajorVersion(target) >= 17;
+}
+
+function getOutputBasename() {
+    return path.join('/tmp', `ios-${randomString(16)}`);
+}
+
 export async function install(target: Device, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
+{
+    if (shouldUseDevicectl(target)) {
+        return await installUsingDevicectl(target, path, cancellationToken, progressCallback);
+    } else {
+        return await installUsingIOSDeploy(target, path, cancellationToken, progressCallback);
+    }
+}
+
+async function installUsingDevicectl(target: Device, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
+{
+    logger.log(`Installing app (path: ${path}) to device (udid: ${target.udid})`);
+    let time = new Date().getTime();
+
+    let installationPath: string|undefined = undefined;
+    let installationError: string|undefined = undefined;
+
+    let outputBasename = getOutputBasename();
+    let stdout = `${outputBasename}-stdout`;
+
+    let p = _execFile(
+        'xcrun',
+        ['devicectl', 'device', 'install', 'app', '--device', target.udid, '--json-output', stdout, path],
+        { env: getIosDeployEnvForSource(target.source) }
+    );
+
+    cancellationToken.cancel = () => p.child.kill();
+
+    // The output of devicectl is not in JSON format, so we use --json-output to write the JSON output to a file, and then parse the file.
+    p.child.stdout?.on('finish', () => {
+        let json = fs.readFileSync(stdout, 'utf8');
+        let result = JSON.parse(json);
+
+        if (result.result?.installedApplications?.length)
+        {
+            installationPath = result.result.installedApplications[0].installationURL;
+        } else if (result.error) {
+            installationError = result.error.userInfo.NSLocalizedDescription.string;
+        }
+    });
+
+    await p;
+
+    logger.log(`Installed in ${new Date().getTime() - time} ms`);
+    logger.log(`Path: ${installationPath}`);
+
+    if (installationError) 
+    {
+        throw Error(installationError);
+    }
+
+    if (!installationPath) 
+    {
+        throw Error('Could not install and get path');
+    }
+
+    return installationPath;
+}
+
+async function installUsingIOSDeploy(target: Device, path: string, cancellationToken: {cancel?(): void}, progressCallback?: (event: any) => void): Promise<string>
 {
     logger.log(`Installing app (path: ${path}) to device (udid: ${target.udid})`);
     let time = new Date().getTime();
 
     let installationPath: string|undefined = undefined;
 
-    let p = _execFile(
+    // Use the spawn method instead of _execFile because stdout maxBuffer length may be exceeded.
+    let p = spawn(
         IOS_DEPLOY,
         ['--id', target.udid, '--faster-path-search', '--timeout', '3', '--bundle', path, '--app_deltas', '/tmp/', '--json'],
         { env: getIosDeployEnvForSource(target.source) }
     );
 
-    cancellationToken.cancel = () => p.child.kill();
+    cancellationToken.cancel = () => p.kill();
 
-    p.child.stdout?.pipe(StreamValues.withParser())
+    p.stdout?.pipe(StreamValues.withParser())
         .on('data', (data) => {
             let event = data.value;
 
@@ -176,7 +245,18 @@ export async function install(target: Device, path: string, cancellationToken: {
             progressCallback && progressCallback(event);
         });
 
-    await p;
+    installationPath = await new Promise((resolve, reject) => {
+        p.on('close', (code, signal) => {
+            if (!installationPath)
+            {
+                reject('Could not install and get path');
+            }
+            else
+            {
+                resolve(installationPath);
+            }
+        });
+    });
 
     logger.log(`Installed in ${new Date().getTime() - time} ms`);
     logger.log(`Path: ${installationPath}`);
@@ -404,7 +484,7 @@ async function getPidForUsingDevicectl(target: Device, appBundleId: string): Pro
 }
 
 export async function getPidFor(target: Device, appBundleId: string): Promise<number> {
-    if (getIosMajorVersion(target) >= 17) {
+    if (shouldUseDevicectl(target)) {
         return await getPidForUsingDevicectl(target, appBundleId);
     } else {
         return await getPidForUsingIOSDeploy(target, appBundleId);
