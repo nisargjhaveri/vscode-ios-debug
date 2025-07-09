@@ -3,31 +3,53 @@ import time
 import os
 import sys
 
-def background_follow(filename):
+def log(message, debugger):
+    """Print debug messages to the LLDB console."""
+    import lldb
+    interpreter = debugger.GetCommandInterpreter()
+    escaped_message = message.replace('\\', '\\\\').replace('"', '\\"')
+    command_result = lldb.SBCommandReturnObject()
+    interpreter.HandleCommand(f'script print("{escaped_message}")', command_result)
+
+    if not command_result.Succeeded():
+        sys.stderr.write(f"Error: {command_result.GetError()}\n")
+
+def background_follow(filename, debugger):
     with open(filename, 'r', encoding='utf-8') as file:
         file.seek(0, os.SEEK_END)
-        utf8_stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False)
 
         while True:
             try:
                 line = file.readline()
-                
+
                 if not line:
                     time.sleep(0.1)
                     continue
-                    
-                print(line.rstrip("\n"), end=None, file=utf8_stdout, flush=True)
-                
+
+                log(line.rstrip("\n"), debugger)
+
             except UnicodeDecodeError as e:
-                print(f"UnicodeDecodeError occurred while following file {filename}: {e}")
+                log(f"UnicodeDecodeError occurred while following file {filename}: {e}", debugger)
+
+            except Exception as e:
+                break
 
 
 def follow(debugger, command, result, internal_dict):
-    "Follow the file in backgroud. (Usage: tail FILENAME)"
+    "Follow the file in background. (Usage: follow FILENAME)"
 
-    print("Tailing %s" % command, end=None, file=result)
+    filename = command.strip()
+    if not filename:
+        result.AppendMessage("Usage: follow FILENAME")
+        return
 
-    background_thread = threading.Thread(None, background_follow, args=[command])
+    if not os.path.exists(filename):
+        result.AppendMessage(f"File not found: {filename}")
+        return
+
+    result.AppendMessage(f"Tailing {filename}")
+
+    background_thread = threading.Thread(target=background_follow, args=[filename, debugger])
     background_thread.daemon = True
     background_thread.start()
 
