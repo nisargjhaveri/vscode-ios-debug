@@ -4,22 +4,33 @@ import os
 import sys
 
 def background_follow(filename):
-    with open(filename, 'r', encoding='utf-8') as file:
-        file.seek(0, os.SEEK_END)
-        utf8_stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False)
+    utf8_stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False)
 
-        while True:
-            try:
-                line = file.readline()
-                
-                if not line:
-                    time.sleep(0.1)
-                    continue
-                    
-                print(line.rstrip("\n"), end=None, file=utf8_stdout, flush=True)
-                
-            except UnicodeDecodeError as e:
-                print(f"UnicodeDecodeError occurred while following file {filename}: {e}")
+    file = None
+
+    while True:
+        try:
+            file = open(filename, 'r', encoding='utf-8')
+            break
+        except FileNotFoundError:
+            time.sleep(0.1)
+
+    while True:
+        try:
+            line = file.readline()
+
+            if not line:
+                time.sleep(0.1)
+                continue
+
+            print(line.rstrip("\n"), end=None, file=utf8_stdout, flush=True)
+
+        except UnicodeDecodeError as e:
+            print(f"UnicodeDecodeError occurred while following file {filename}: {e}")
+
+        except Exception as e:
+            print(f"Exception occurred while following file {filename}: {e}")
+            break
 
 
 def follow(debugger, command, result, internal_dict):
